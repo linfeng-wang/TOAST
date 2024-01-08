@@ -1,28 +1,27 @@
 #here I would try to gather al paddings together and make new genome
 # the versions to fall back on
 #%%
-from functools import partial
-from random import choices, randint, randrange, random, sample
-from typing import List, Optional, Callable, Tuple
-from importlib import reload
+# from functools import partial
+# from random import choices, randint, randrange, random, sample
+# from typing import List, Optional, Callable, Tuple
+# from importlib import reload
 
 import numpy as np
 # from geneticalgorithm import geneticalgorithm as ga
 import pandas as pd
-from collections import Counter
-from tqdm import tqdm
-import time
-from Bio.SeqUtils import MeltingTemp
-from Bio import SeqIO
-from Bio.Blast import NCBIWWW, NCBIXML
-import primer3
+# from collections import Counter
+# from tqdm import tqdm
+# import time
+# from Bio.SeqUtils import MeltingTemp
+# from Bio.Blast import NCBIWWW, NCBIXML
+# import primer3
 from Bio.Seq import Seq
-from Bio.SeqUtils import MeltingTemp
+# from Bio.SeqUtils import MeltingTemp
 from primer3 import calc_heterodimer
 from primer3 import bindings
 from Bio import SeqIO
-import Thermo
-reload(Thermo)
+from toast import Thermo
+# reload(Thermo)
 # %%
 def calculate_gc_content(sequence):
     """

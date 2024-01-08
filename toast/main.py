@@ -1,31 +1,31 @@
-from functools import partial
-from random import choices, randint, randrange, random, sample
-from typing import List, Optional, Callable, Tuple
+# from functools import partial
+# from random import choices, randint, randrange, random, sample
+# from typing import List, Optional, Callable, Tuple
 import numpy as np
 # from geneticalgorithm import geneticalgorithm as ga
 from rich_argparse import ArgumentDefaultsRichHelpFormatter
 import pandas as pd
-from collections import Counter
-from tqdm import tqdm
-import time
-from Bio.SeqUtils import MeltingTemp
-from Bio import SeqIO
-from plotly import graph_objects as go
-import json
-from importlib import reload
-import primer_selection
-reload(primer_selection)
-import Amplicon_no
-reload(Amplicon_no)
-import working_algo_gene_2in1 as w
-reload(w)
+# from collections import Counter
+# from tqdm import tqdm
+# import time
+# from Bio.SeqUtils import MeltingTemp
+# from Bio import SeqIO
+# from plotly import graph_objects as go
+# import json
+# from importlib import reload
+from toast import primer_selection
+# reload(primer_selection)
+from toast import Amplicon_no
+# reload(Amplicon_no)
+from toast import working_algo_gene_2in1 as w
+# reload(w)
 import argparse
 from functools import reduce
 import os
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import pandas as pd
-import plotting1 as p
-from icecream import ic
+from toast import plotting1 as p
+# from icecream import ic
 from tabulate import tabulate
 
 def main(args):
@@ -385,7 +385,92 @@ def main_plotting(args):
     return 0
     
 # %%
-if __name__ == "__main__":
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser(prog='Amplicon designer for TB', 
+#                                     description='Amplicon design, list of specific genes that can be priotised: rpoB,katG,embB,pncA,rpsL,rrs,ethA,fabG1,gyrA,gid,inhA,ethR,rpoC,ahpC,gyrB,folC,tlyA,alr,embA,thyA,eis',
+#                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    
+#     subparsers = parser.add_subparsers(dest="command", help="Task to perform")
+
+#     ###### Design pipeline
+#     parser_sub = subparsers.add_parser('design', help='Run whole design pipeline', formatter_class=ArgumentDefaultsRichHelpFormatter)
+#     input=parser_sub.add_argument_group("Input options")
+#     # parser.add_argument('-c','--country_file', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='variants.csv', default=None)
+#     # in
+#     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
+#     input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default='../db/MTB-h37rv_asm19595v2-eg18.fa')
+#     input.add_argument('-sp_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = '../db/spacers.bed')
+#     input.add_argument('-as','--all_snps', type = str, help = 'All SNPs in the reference genome', default = '../db/all_snps.csv')
+    
+#     #design
+#     setting=parser_sub.add_argument_group("Design options")
+#     setting.add_argument('-a','--amplicon_size', type = int, help = 'Amplicon size', default=400)
+#     setting.add_argument('-p','--padding_size', type = int, help = 'Size of padding on each side of the target sequence during primer design', default=None)
+#     setting.add_argument('-sn','--specific_amplicon_no', type = int, help = 'number of amplicon dedicated to amplifying specific genes', default=0 )
+#     setting.add_argument('-sg','--specific_amplicon_gene', type = str, help = 'give a list of gene names separated by Lineage ', default='')
+#     setting.add_argument('-nn','--non-specific_amplicon_no', type = int, help = 'number of amplicon dedicated to amplifying all SNPs in all genes according the importants list', default=20)
+#     setting.add_argument('-g','--graphic_option', action='store_true', help = 'output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
+#     setting.add_argument('-sc','--spoligo_coverage', action='store_true', help = 'Whether to amplify Spoligotype', default = False)
+
+#     # out
+#     output=parser_sub.add_argument_group("Output options")
+#     output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output_folder_path (accepted_primers, SNP_inclusion, gene_covered)', required=True)
+#     parser_sub.set_defaults(func=main)
+    
+#     ###### Amplicon number estimates
+#     parser_sub = subparsers.add_parser('amplicon_no', help='Amplicon number estimates', formatter_class=ArgumentDefaultsRichHelpFormatter)
+#     input=parser_sub.add_argument_group("input options")
+#     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
+#     input.add_argument('-sc_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = '../db/spacers.bed')
+#     input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default='../db/MTB-h37rv_asm19595v2-eg18.fa')
+    
+#     #design
+#     setting=parser_sub.add_argument_group("Amplicon options")
+#     setting.add_argument('-a','--amplicon_size', type = int, help = 'Amplicon size', default=400)
+#     setting.add_argument('-c','--target_coverage', type = int, help = 'target coverage of SNPs default: full coverage(1)', default=1)
+#     # setting.add_argument('-sc','--spoligotype_sequencing', action='store_true', help = 'Whether to do a separate run on chekcing the number of amplicon needed to cover the spligotypes', default= False)
+#     # setting.add_argument('-ap','--amplicon_sequencing', action='store_true', help = 'Whether to calculate amplicon number for SNP coverage', default = True)
+#     setting.add_argument('-g','--graphic_option', action='store_true', help = 'output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
+    
+#     # out
+#     output=parser_sub.add_argument_group("Output options")
+#     output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output_folder_path (Amplicon number estimate graphics)', required=True)
+#     parser_sub.set_defaults(func=main)
+    
+#     parser_sub.set_defaults(func=main_amplicon_no)
+
+#     # output=parser_sub.add_argument_group("Output options")
+#     # output.add_argument('-op','--output_folder_path', default = './', type = str, help = 'output folder path for covered ranges')
+#     # output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output folder path for covered ranges')
+
+#     ###### Visualisation of designed amplicons
+#     parser_sub = subparsers.add_parser('plotting', help='Visualised the designed amplicons', formatter_class=ArgumentDefaultsRichHelpFormatter)
+#     #input
+#     input=parser_sub.add_argument_group("input options")
+#     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
+#     input.add_argument('-gff','--gff_features', type = str, help = 'genomic feature file .gff for the corresponding genome', default='../db/MTB-h37rv_asm19595v2-eg18.gff')
+#     input.add_argument('-ap','--accepted_primers', type = str, help = 'primer design output file from desgin function', required=True)
+#     input.add_argument('-rp','--reference_design', type = str, help = '(reference) design that can be plotted against the designed amplicons for comparision', default=None)
+#     input.add_argument('-r','--read_size', type = str, help = 'size of the designed amplicons', default='unknown-')
+    
+#     #output
+#     output=parser_sub.add_argument_group("output options")
+#     output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output_folder_path (accepted_primers, SNP_inclusion, gene_covered)', required=True)
+#     parser_sub.set_defaults(func=main_plotting)
+
+#     args = parser.parse_args()
+#     if args.command == 'design':
+#         main(args)
+#     if args.command == 'amplicon_no':
+#         main_amplicon_no(args)
+#     if args.command == 'plotting':
+#         main_plotting(args)
+        
+        
+def cli():
+    """
+    Command line interface for TOAST.
+    """
     parser = argparse.ArgumentParser(prog='Amplicon designer for TB', 
                                     description='Amplicon design, list of specific genes that can be priotised: rpoB,katG,embB,pncA,rpsL,rrs,ethA,fabG1,gyrA,gid,inhA,ethR,rpoC,ahpC,gyrB,folC,tlyA,alr,embA,thyA,eis',
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)

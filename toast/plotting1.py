@@ -1,27 +1,26 @@
 #%%
-from functools import partial
-from random import choices, randint, randrange, random, sample
-from typing import List, Optional, Callable, Tuple
+# from functools import partial
+# from random import choices, randint, randrange, random, sample
+# from typing import List, Optional, Callable, Tuple
 import numpy as np
 # from geneticalgorithm import geneticalgorithm as ga
 import pandas as pd
-from collections import Counter
-from tqdm import tqdm
-import time
-from Bio.SeqUtils import MeltingTemp
-from Bio import SeqIO
-from plotly import graph_objects as go
-import json
-from imp import reload
-import primer_selection
-reload(primer_selection)
-import Amplicon_no
-reload(Amplicon_no)
-import argparse
-from functools import reduce
+# from collections import Counter
+# from tqdm import tqdm
+# import time
+# from Bio.SeqUtils import MeltingTemp
+# from Bio import SeqIO
+# from plotly import graph_objects as go
+# import json
+# from imp import reload
+# import primer_selection
+# reload(primer_selection)
+# import Amplicon_no
+# reload(Amplicon_no)
+# import argparse
+# from functools import reduce
 import os
 import matplotlib.pyplot as plt
-import pandas as pd
 
 
 #%%

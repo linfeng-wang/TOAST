@@ -1,22 +1,22 @@
 #%%
-from functools import partial
-from random import choices, randint, randrange, random, sample
-from typing import List, Optional, Callable, Tuple
+# from functools import partial
+# from random import choices, randint, randrange, random, sample
+# from typing import List, Optional, Callable, Tuple
 import numpy as np
 # from geneticalgorithm import geneticalgorithm as ga
 import pandas as pd
-from collections import Counter
-from tqdm import tqdm
-import time
-from Bio.SeqUtils import MeltingTemp
-from Bio import SeqIO
+# from collections import Counter
+# from tqdm import tqdm
+# import time
+# from Bio.SeqUtils import MeltingTemp
+# from Bio import SeqIO
 from plotly import graph_objects as go
-import json
+# import json
 from imp import reload
-import argparse
+# import argparse
 from functools import reduce
-import working_algo_gene_2in1 as w
-import primer_selection as p_s
+from toast import working_algo_gene_2in1 as w
+from toast import primer_selection as p_s
 import os
 
 #%%
