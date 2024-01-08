@@ -469,8 +469,68 @@ def main_plotting(args):
         
 def cli():
     """
-    Command line interface for TOAST.
+    Command line interface for TOAST - Tuberculosis Optimized Amplicon Sequencing Tool.
+    
+    Design Function - (design)
+        Purpose: To design specific amplicons for TB genes.
+        Inputs:
+        SNP priorities, reference genomes, spoligotype sequencing files.
+        Settings:
+        Amplicon size, padding size, specific/non-specific amplicon numbers.
+        Option for graphical output.
+        Outputs:
+        Files in specified output folder path.
+        
+    Amplicon Number Estimates Function - (amplicon_no)
+        Purpose: To estimate the number of amplicons for SNP coverage in TB genomic studies.
+        Inputs:
+        SNP priority files, spoligotype sequencing files, reference genomes.
+        Settings:
+        Amplicon size, target coverage, graphical output option.
+        Outputs:
+        Estimates and graphics in the specified output folder path.
+        
+    Plotting Function - (plotting)
+        Purpose: To visualize designed amplicons for analysis.
+        Inputs:
+        SNP priority files, GFF files, accepted primers, reference design.
+        Settings:
+        Read size specification.
+        Outputs:
+        Visualization graphics and outputs in specified output folder path.
     """
+    print("""
+    Command line interface for TOAST.
+    
+    Design Function - (design)
+        - Purpose: To design specific amplicons for TB genes.
+        - Inputs:
+            SNP priorities, reference genomes, spoligotype sequencing files.
+        - Settings:
+            Amplicon size, padding size, specific/non-specific amplicon numbers.
+            Option for graphical output.
+        - Outputs:
+            Files in specified output folder path.
+        
+    Amplicon Number Estimates Function - (amplicon_no)
+        - Purpose: To estimate the number of amplicons for SNP coverage in TB genomic studies.
+        - Inputs:
+            SNP priority files, spoligotype sequencing files, reference genomes.
+        - Settings:
+            Amplicon size, target coverage, graphical output option.
+        - Outputs:
+            Estimates and graphics in the specified output folder path.
+        
+    Plotting Function - (plotting)
+        - Purpose: To visualize designed amplicons for analysis.
+        - Inputs:
+            SNP priority files, GFF files, accepted primers, reference design.
+        - Settings:
+            Read size specification.
+        - Outputs:
+            Visualization graphics and outputs in specified output folder path.
+    """)
+    
     parser = argparse.ArgumentParser(prog='Amplicon designer for TB', 
                                     description='Amplicon design, list of specific genes that can be priotised: rpoB,katG,embB,pncA,rpsL,rrs,ethA,fabG1,gyrA,gid,inhA,ethR,rpoC,ahpC,gyrB,folC,tlyA,alr,embA,thyA,eis',
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -482,6 +542,7 @@ def cli():
     input=parser_sub.add_argument_group("Input options")
     # parser.add_argument('-c','--country_file', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='variants.csv', default=None)
     # in
+    # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
     input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default='../db/MTB-h37rv_asm19595v2-eg18.fa')
     input.add_argument('-sp_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = '../db/spacers.bed')
@@ -504,6 +565,7 @@ def cli():
     
     ###### Amplicon number estimates
     parser_sub = subparsers.add_parser('amplicon_no', help='Amplicon number estimates', formatter_class=ArgumentDefaultsRichHelpFormatter)
+    # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input=parser_sub.add_argument_group("input options")
     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
     input.add_argument('-sc_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = '../db/spacers.bed')
@@ -531,6 +593,7 @@ def cli():
     ###### Visualisation of designed amplicons
     parser_sub = subparsers.add_parser('plotting', help='Visualised the designed amplicons', formatter_class=ArgumentDefaultsRichHelpFormatter)
     #input
+    # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input=parser_sub.add_argument_group("input options")
     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
     input.add_argument('-gff','--gff_features', type = str, help = 'genomic feature file .gff for the corresponding genome', default='../db/MTB-h37rv_asm19595v2-eg18.gff')
