@@ -1,0 +1,15 @@
+*.bam
+*.bai
+strain_analysis/Strain_calling_models/read_pos.csv
+*.tex
+*.vcf
+*.vcf.gz
+*.cram
+*.json
+*.png
+*.fastq
+*.csv
+*.txt
+*.csi
+*.trees
+# find . -type f -size +99M
