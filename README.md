@@ -20,15 +20,21 @@ Get to the code directory
 1. Estimate amplicon number needed for coverage (*amplicon_no* function)
    - Example: 
    ```
-    python main.py amplicon_no -a 400 -op ../test1 -g
+    python main.py amplicon_no -a 400 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -g
+
+    toast amplicon_no -a 400 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -g
    ```
 2. Run amplicon design (*design* function)
     - Example: 
     ```
-    python main.py design -op ../test1 -a 400 -sn 1 -sg rpoB,katG -nn 40 -sc
+    python main.py design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40 -sc
+
+    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40 -sc
     ```
 3. Check amplicon design using coverage plot (*plotting* function)
     - Example: 
     ```
-    python main.py plotting -ap ../test1/Amplicon_design_output/Primer_design-accepted_primers-42-400.csv -rp ../db/reference_design.csv -op ../test1 -r 400
+    python main.py plotting -ap /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output/Amplicon_design_output/Primer_design-accepted_primers-42-400.csv -rp ../db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
+    
+    toast plotting -ap /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output/Amplicon_design_output/Primer_design-accepted_primers-42-400.csv -rp ../db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
     ``` 

@@ -108,7 +108,6 @@ def main(args):
 
     # Reference Genome
     ref_genome = args.reference_genome
-    
     #specific_genes
     if args.specific_amplicon_gene:
         specific_gene = args.specific_amplicon_gene.split(',')
@@ -205,8 +204,8 @@ def main(args):
         spol_data.loc[combined_mask, 'weight'] = 1
         covered_positions_spol, covered_ranges_spol, full_data_cp, primer_pool, accepted_primers, no_primer_ = Amplicon_no.place_amplicon_spol(spol_data, 1, read_size, ref_genome, primer_pool, accepted_primers, no_primer_, padding=padding, graphic_output=False, check_snp=False)
         covered_ranges = covered_ranges + covered_ranges_spol
-        print(covered_ranges)
-        print(covered_ranges_spol)
+        # print(covered_ranges)
+        # print(covered_ranges_spol)
         # covered_ranges_spol = Amplicon_no.place_amplicon_spol(spol_data, 1, read_size, graphic_output=False, ref_size = w.genome_size(ref_genome))
         # covered_ranges.extend(covered_ranges_spol)
 
@@ -219,9 +218,9 @@ def main(args):
     # print(accepted_primers.shape)
     # print(covered_ranges)
     # print(no_primer_)
-    print(covered_ranges)
-    print(accepted_primers)
-    print(no_primer_)
+    # print(covered_ranges)
+    # print(accepted_primers)
+    # print(no_primer_)
     accepted_primers['Amplicon_type'] = primer_label
     # accepted_primers['Redesign'] = no_primer_
     accepted_primers['Designed_ranges'] = covered_ranges
@@ -260,7 +259,7 @@ def main(args):
             accepted_primers.loc[i, 'pRight_Sequences'] = primer_seq
     
     # print(accepted_primers[['pLeft_Sequences','pRight_Sequences','pLeft_coord']].head(2))
-    if spoligotype:
+    if spoligotype: # if spoligotype is included change labelling in output
         sp = '-sp'
     else:
         sp = ''
@@ -322,20 +321,34 @@ def main(args):
 
             # Combine the two series
             combined_series = amp_snp_aligned.astype(str) + "/" + full_data_gene.astype(str) + " (" + formatted_result + ")"
-
             # print(combined_series)
-
             # gene_coverage = round(amp_snp['gene'].value_counts()/full_data['gene'].value_counts()*100, 1)
 
             gene_coverage_df = combined_series.reset_index().fillna(0)
             gene_coverage_df.columns = ['Gene', 'SNP_coverage']
             
             print(tabulate(gene_coverage_df, headers='keys', tablefmt='grid'))
-
+    
+    out_bed = {}
+    for i, x in accepted_primers.iterrows():
+        designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}"
+        amplicone_name = f"A{i+1}-{x['pLeft_ID'].split('-')[1]}"
+        out_bed[designed_range_name] = x['Designed_ranges']
+        out_bed[amplicone_name] = [x['pLeft_coord'], x['pRight_coord']+x['pRight_length']]
+        out_bed[x['pLeft_ID']] = [x['pLeft_coord'], x['pLeft_coord']+x['pLeft_length']]
+        out_bed[x['pRight_ID']] = [x['pRight_coord'], x['pRight_coord']+x['pRight_length']]
+    out = pd.DataFrame(out_bed).T
+    out[2] = out.index
+    out.insert(loc = 0,
+            column='col1',
+            value = ['Chromosome'] * out.shape[0])
+        
+    out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False)
+    
     print('Primer design output files:')
     print(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv')
     print(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}.csv')
-    
+    print(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed')
     return 0
 
 def main_amplicon_no(args):
@@ -383,6 +396,8 @@ def main_plotting(args):
     read_size = args.read_size
     p.plotting(priority, read_size, accepted_primers, gff, reference_design, output_dir)
     return 0
+    
+    
     
 # %%
 # if __name__ == "__main__":
@@ -468,6 +483,10 @@ def main_plotting(args):
         
         
 def cli():
+    # if args.db==None:
+    db = '/'.join(__file__.split('/')[:-1]) + '/db'
+    
+    # print(os.listdir(db_dir))
     """
     Command line interface for TOAST - Tuberculosis Optimized Amplicon Sequencing Tool.
     
@@ -543,10 +562,10 @@ def cli():
     # parser.add_argument('-c','--country_file', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='variants.csv', default=None)
     # in
     # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
-    input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
-    input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default='../db/MTB-h37rv_asm19595v2-eg18.fa')
-    input.add_argument('-sp_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = '../db/spacers.bed')
-    input.add_argument('-as','--all_snps', type = str, help = 'All SNPs in the reference genome', default = '../db/all_snps.csv')
+    input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default=f'{db}/variants.csv')
+    input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default=f'{db}/MTB-h37rv_asm19595v2-eg18.fa')
+    input.add_argument('-sp_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = f'{db}/spacers.bed')
+    input.add_argument('-as','--all_snps', type = str, help = 'All SNPs in the reference genome', default = f'{db}/all_snps.csv')
     
     #design
     setting=parser_sub.add_argument_group("Design options")
@@ -567,9 +586,9 @@ def cli():
     parser_sub = subparsers.add_parser('amplicon_no', help='Amplicon number estimates', formatter_class=ArgumentDefaultsRichHelpFormatter)
     # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input=parser_sub.add_argument_group("input options")
-    input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
-    input.add_argument('-sc_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = '../db/spacers.bed')
-    input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default='../db/MTB-h37rv_asm19595v2-eg18.fa')
+    input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default=f'{db}/variants.csv')
+    input.add_argument('-sc_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = f'{db}/spacers.bed')
+    input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default=f'{db}/MTB-h37rv_asm19595v2-eg18.fa')
     
     #design
     setting=parser_sub.add_argument_group("Amplicon options")
@@ -595,8 +614,8 @@ def cli():
     #input
     # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input=parser_sub.add_argument_group("input options")
-    input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
-    input.add_argument('-gff','--gff_features', type = str, help = 'genomic feature file .gff for the corresponding genome', default='../db/MTB-h37rv_asm19595v2-eg18.gff')
+    input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default=f'{db}/variants.csv')
+    input.add_argument('-gff','--gff_features', type = str, help = 'genomic feature file .gff for the corresponding genome', default=f'{db}/MTB-h37rv_asm19595v2-eg18.gff')
     input.add_argument('-ap','--accepted_primers', type = str, help = 'primer design output file from desgin function', required=True)
     input.add_argument('-rp','--reference_design', type = str, help = '(reference) design that can be plotted against the designed amplicons for comparision', default=None)
     input.add_argument('-r','--read_size', type = str, help = 'size of the designed amplicons', default='unknown-')

@@ -310,7 +310,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
     # size_range = f'{int(len(sequence)-padding*1.3)}-{int(len(sequence)-padding*1)}'
     size_range = f'{len(sequence)-padding*2}-{len(sequence)}'
     
-    genome = extract_sequence_from_fasta(0, genome_size(ref_genome),padding=0)
+    genome = extract_sequence_from_fasta(0, genome_size(ref_genome),padding=0, fasta_file=ref_genome)
     no_primer = []
     ok_region_list = [0, padding,len(sequence)-padding,padding]
     # size_range = f'{len(sequence)-350}-{len(sequence)-250}'
@@ -422,7 +422,6 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
     if len(primer_pool) == 0:
         print(f'{df.shape[0]-1} primers designed')
         for i, row in df.iterrows():
-            print(row)
             # print(i, df.shape[0]-1)
             left_ok = True
             right_ok = True
@@ -517,7 +516,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                                 continue
                                 
                             else:
-                                seq_template = extract_sequence_from_fasta(low_b, high_b, padding=0)
+                                seq_template = extract_sequence_from_fasta(low_b, high_b, padding=0, fasta_file=ref_genome)
                                 print(f'Redesigning primers for the new range ({change}bps): {low_b, high_b} = {low_b-int(change), high_b}')
                                 # primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome = ref_genome, high_b = high_b, low_b = low_b, priority=priority, read_size = read_size)
                                 primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome, high_b, low_b, read_size, priority, check_snp, freq_cutoff=50000, _is_recursive='left')
@@ -540,7 +539,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                                 continue
                             else:
                                 high_b = high_b+int(change)
-                                seq_template = extract_sequence_from_fasta(low_b, high_b+int(change), padding=0)
+                                seq_template = extract_sequence_from_fasta(low_b, high_b+int(change), padding=0, fasta_file=ref_genome)
                                 print(f'Redesigning primers for the new range ({change}bps): {low_b, high_b} instead of {low_b, high_b-int(change)}')
                                 # primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome = ref_genome, high_b = high_b, low_b = low_b, priority=priority, read_size = read_size)
                                 primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome, high_b, low_b, read_size, priority, check_snp, freq_cutoff=50000, _is_recursive='right')
@@ -669,7 +668,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                             
                             
                             low_b = low_b+int(change)
-                            seq_template = extract_sequence_from_fasta(low_b, high_b, padding=0)
+                            seq_template = extract_sequence_from_fasta(low_b, high_b, padding=0, fasta_file=ref_genome)
                             print(f'Redesigning primers for the new range ({change}bps): {low_b, high_b} instead of {low_b-int(change), high_b}')
                             primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome, high_b, low_b, read_size, priority, check_snp, freq_cutoff=50000, _is_recursive='left')
                         
@@ -694,7 +693,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                                 #     pass
                                 # else:
                                 high_b = high_b+int(change)
-                                seq_template = extract_sequence_from_fasta(low_b, high_b, padding=0)
+                                seq_template = extract_sequence_from_fasta(low_b, high_b, padding=0,fasta_file=ref_genome)
                                 print(f'Redesigning primers for the new range ({change}bps): {low_b, high_b} instead of {low_b, high_b-int(change)}')
                                 # primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome = ref_genome, high_b = high_b, low_b = low_b, priority=priority, read_size = read_size)
                                 primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome, high_b, low_b, read_size, priority, check_snp, freq_cutoff=50000, _is_recursive='left')
