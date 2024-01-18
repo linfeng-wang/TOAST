@@ -8,7 +8,7 @@ strain_analysis/Strain_calling_models/read_pos.csv
 *.json
 *.png
 *.fastq
-*.csv
+variants_full.csv
 *.txt
 *.csi
 *.trees
