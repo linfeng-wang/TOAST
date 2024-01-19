@@ -74,6 +74,8 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
     coverage_trace = [0]
     coverage = coverage_trace[-1]
     amplicon_number = 0
+    amplicon_number_list = []
+    coverage_list = []
     coverage_range = []
     print('Placing Amplicons...')
     while coverage < target_coverage*0.99:
@@ -124,12 +126,16 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
         print(f'Amplicon#{amplicon_number}: SNP-coverage: {round(coverage,3)*100}%')
 
         # full_data_cp.loc[(full_data_cp['genome_pos']>=start) & (full_data_cp['genome_pos']<=end), 'weight'] = 0 # set the weight of the covered positions to 0
-        
+        coverage_list.append(coverage*100)
         weight_window_sum = rolling_sum_search(full_data_cp, 'weight', window_size, full_data_cp['genome_pos'].tolist()) # recalculate the rolling sum
-    
     
     print(f'**{amplicon_number} amplicons needed to cover {round(coverage,3)*100}% SNPs')
 
+    output = pd.DataFrame({'Amplicon_number': amplicon_number_list, 'SNP_coverage(%)': coverage_list})
+    
+    os.makedirs(f'{output_path}/Amplicon_num', exist_ok=True)
+    output.to_csv(f'{output_path}/Amplicon_num/amplicon_no_estimation_-{read_size}bps.csv', index=False)
+    print(f'**Output saved to: {output_path}/Amplicon_num/amplicon_no_estimation_-{read_size}bps.csv')
     if graphic_output:
         x = np.linspace(0, len(coverage_trace), len(coverage_trace))
         y = [x*100 for x in coverage_trace]
@@ -141,7 +147,7 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
         fig.update_layout(title=f'Number of {read_size}bps Amplicon needed for {target_coverage*100}% SNP coverage',
                         xaxis_title='No. of Amplicones',
                         yaxis_title='SNP Coverage (%)')
-        fig.add_vline(x=amplicon_number, line_width=3, line_dash="dash", line_color="green")
+        # fig.add_vline(x=amplicon_number, line_width=3, line_dash="dash", line_color="green")
 
         # fig.show() 
         if output_path:

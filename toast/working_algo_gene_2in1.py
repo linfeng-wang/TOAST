@@ -142,7 +142,8 @@ def extraction_prep(x, ref_size, ref_genome, padding=150):
         high_b+= padding
         low_b-= padding
     # seq_template = primer_selection.extract_sequence_from_fasta(low_b, high_b, padding=padding)
-    seq_template = primer_selection.extract_sequence_from_fasta(low_b, high_b, padding=int(padding/2), fasta_file=ref_genome) #set to 0 to avoid padding again
+    seq_template = primer_selection.extract_sequence_from_fasta(low_b, high_b, padding=0, fasta_file=ref_genome) #set to 0 to avoid padding again
+    # seq_template = primer_selection.extract_sequence_from_fasta(low_b, high_b, padding=int(padding/2), fasta_file=ref_genome) #set to 0 to avoid padding again
     # print(low_b, high_b)
     # print(seq_template)
     return seq_template, low_b, high_b
@@ -188,6 +189,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
     pos = full_data_cp['genome_pos'].unique()
     covered_positions = {}
     covered_ranges = []
+    designed_ranges = []
     reduce_amplicon = 0
     
     # primer design storage
@@ -245,6 +247,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         end_r = start_r+window_size
         if end_r > genome_size(ref_genome):
             end_r = genome_size(ref_genome)-200
+        designed_ranges.append([start_r, end_r])
  
         # ideal_range.append([start_r, end_r])
 
@@ -305,7 +308,8 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         end = time.time()
         print(f'Programme ran for {round((end - start)/60,1)} min')
 
-    return covered_positions, covered_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
+    # return covered_positions, covered_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
+    return covered_positions, designed_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
 
 def modify_primer_name(primer, amplicon_type, L_R):
     prefix = 'sp' if 'Gene_specific' in amplicon_type else 'ns' if 'Non_specific' in amplicon_type else 'spol' if 'Spoligotype' in amplicon_type else ''

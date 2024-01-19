@@ -1,0 +1,2 @@
+index,pLeft_ID,pLeft_coord,pLeft_length,pLeft_Tm,pLeft_GC,pLeft_Sequences,pLeft_EndStability,pRight_ID,pRight_coord,pRight_length,pRight_Tm,pRight_GC,pRight_Sequences,pRight_EndStability,Penalty,Product_size,Amplicon_type,Designed_ranges
+0,P1-sp-L1,781678,20,60.03815908627445,55.0,CACTCCGAAGAAGCCGAACT,3.01,P1-sp-R1,782004,20,60.108991841923455,55.0,TACGGATCGCAGTTGGTCAC,4.02,0.14715092819790243,326,Gene_specific:rpsL,"[781585, 781985]"

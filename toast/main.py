@@ -27,6 +27,18 @@ import pandas as pd
 from toast import plotting1 as p
 # from icecream import ic
 from tabulate import tabulate
+def user_defined(str: primer_input):
+    primer_input = primer_input.split(',')
+    primer_input = [item.strip() for item in primer_input]
+    columns = ['pLeft_ID', 'pLeft_coord', 'pLeft_length', 'pLeft_Tm', 'pLeft_GC', 
+            'pLeft_Sequences', 'pLeft_EndStability', 'pRight_ID', 'pRight_coord', 
+            'pRight_length', 'pRight_Tm', 'pRight_GC', 'pRight_Sequences', 
+            'pRight_EndStability', 'Penalty', 'Product_size', 'Amplicon_type', 
+            'Designed_ranges']
+    # Create an empty DataFrame with these columns
+    df = pd.DataFrame(columns=columns)
+
+df.head()  # Display the DataFrame (it will be empty)
 
 def main(args):
     print('>>>Designing Amplicons')
@@ -303,7 +315,8 @@ def main(args):
         if _len == 0:
             pass
         else:
-            for (x,y) in covered_ranges[:_len]:
+            # for (x,y) in covered_ranges[:_len]:
+            for x,y in zip(accepted_primers['pLeft_coord'].tolist(), accepted_primers['pRight_coord'].tolist()):
                 condition = (full_data['genome_pos'] >= x) & (full_data['genome_pos'] <= y)
                 filtered_data = full_data[condition]
                 # Drop columns that are completely empty or all NA from filtered_data
@@ -329,20 +342,31 @@ def main(args):
             
             print(tabulate(gene_coverage_df, headers='keys', tablefmt='grid'))
     
+    if accepted_primers.shape[0] == 0:
+        raise Exception('No primers designed')
+    
     out_bed = {}
+    colors = ['0,0,255', '0,255,0', '255,0,0', '128,0,0']*accepted_primers.shape[0]
     for i, x in accepted_primers.iterrows():
         designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}"
         amplicone_name = f"A{i+1}-{x['pLeft_ID'].split('-')[1]}"
         out_bed[designed_range_name] = x['Designed_ranges']
-        out_bed[amplicone_name] = [x['pLeft_coord'], x['pRight_coord']+x['pRight_length']]
+        # out_bed[amplicone_name] = [x['pLeft_coord'], x['pRight_coord']+x['pRight_length']]
+        out_bed[amplicone_name] = [x['pLeft_coord'], x['pRight_coord']]
         out_bed[x['pLeft_ID']] = [x['pLeft_coord'], x['pLeft_coord']+x['pLeft_length']]
-        out_bed[x['pRight_ID']] = [x['pRight_coord'], x['pRight_coord']+x['pRight_length']]
+        out_bed[x['pRight_ID']] = [x['pRight_coord']-x['pRight_length'], x['pRight_coord']]
     out = pd.DataFrame(out_bed).T
     out[2] = out.index
     out.insert(loc = 0,
             column='col1',
             value = ['Chromosome'] * out.shape[0])
-        
+    # putting in the coluns
+    out[4] = 0 # score 
+    out[5] = '.' # strand
+    out[6] = out[0] # thickStart
+    out[7] = out[1] #ThickEnd
+    out[8] = colors # itemRgb
+    
     out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False)
     
     print('Primer design output files:')
@@ -570,16 +594,16 @@ def cli():
     #design
     setting=parser_sub.add_argument_group("Design options")
     setting.add_argument('-a','--amplicon_size', type = int, help = 'Amplicon size', default=400)
-    setting.add_argument('-p','--padding_size', type = int, help = 'Size of padding on each side of the target sequence during primer design', default=None)
-    setting.add_argument('-sn','--specific_amplicon_no', type = int, help = 'number of amplicon dedicated to amplifying specific genes', default=0 )
-    setting.add_argument('-sg','--specific_amplicon_gene', type = str, help = 'give a list of gene names separated by Lineage ', default='')
-    setting.add_argument('-nn','--non-specific_amplicon_no', type = int, help = 'number of amplicon dedicated to amplifying all SNPs in all genes according the importants list', default=20)
-    setting.add_argument('-g','--graphic_option', action='store_true', help = 'output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
+    setting.add_argument('-p','--padding_size', type = int, help = 'Size of padding on each side of the target sequence during primer design (default: amplicon_size/4)', default=None)
+    setting.add_argument('-sn','--specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying specific genes', default=0 )
+    setting.add_argument('-sg','--specific_amplicon_gene', type = str, help = 'Provide a list of gene names separated by comma <,>', default='')
+    setting.add_argument('-nn','--non-specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying all SNPs in all genes according the importants list', default=20)
+    setting.add_argument('-g','--graphic_option', action='store_true', help = 'Output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
     setting.add_argument('-sc','--spoligo_coverage', action='store_true', help = 'Whether to amplify Spoligotype', default = False)
 
     # out
     output=parser_sub.add_argument_group("Output options")
-    output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output_folder_path (accepted_primers, SNP_inclusion, gene_covered)', required=True)
+    output.add_argument('-op','--output_folder_path', type = str, help = 'Output_folder_path (accepted_primers, SNP_inclusion, gene_covered)', required=True)
     parser_sub.set_defaults(func=main)
     
     ###### Amplicon number estimates
@@ -588,21 +612,19 @@ def cli():
     input=parser_sub.add_argument_group("input options")
     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default=f'{db}/variants.csv')
     input.add_argument('-sc_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = f'{db}/spacers.bed')
-    input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default=f'{db}/MTB-h37rv_asm19595v2-eg18.fa')
+    input.add_argument('-ref','--reference_genome', type = str, help = 'Reference fasta file (default: MTB-h37rv genome)', default=f'{db}/MTB-h37rv_asm19595v2-eg18.fa')
     
     #design
     setting=parser_sub.add_argument_group("Amplicon options")
     setting.add_argument('-a','--amplicon_size', type = int, help = 'Amplicon size', default=400)
-    setting.add_argument('-c','--target_coverage', type = int, help = 'target coverage of SNPs default: full coverage(1)', default=1)
+    setting.add_argument('-c','--target_coverage', type = int, help = 'Target coverage of SNPs default: full coverage(1)', default=1)
     # setting.add_argument('-sc','--spoligotype_sequencing', action='store_true', help = 'Whether to do a separate run on chekcing the number of amplicon needed to cover the spligotypes', default= False)
     # setting.add_argument('-ap','--amplicon_sequencing', action='store_true', help = 'Whether to calculate amplicon number for SNP coverage', default = True)
-    setting.add_argument('-g','--graphic_option', action='store_true', help = 'output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
+    setting.add_argument('-g','--graphic_option', action='store_true', help = 'Output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
     
     # out
     output=parser_sub.add_argument_group("Output options")
-    output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output_folder_path (Amplicon number estimate graphics)', required=True)
-    parser_sub.set_defaults(func=main)
-    
+    output.add_argument('-op','--output_folder_path', type = str, help = 'Output_folder_path (Amplicon number estimate graphics)', required=True)    
     parser_sub.set_defaults(func=main_amplicon_no)
 
     # output=parser_sub.add_argument_group("Output options")
@@ -615,14 +637,14 @@ def cli():
     # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input=parser_sub.add_argument_group("input options")
     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default=f'{db}/variants.csv')
-    input.add_argument('-gff','--gff_features', type = str, help = 'genomic feature file .gff for the corresponding genome', default=f'{db}/MTB-h37rv_asm19595v2-eg18.gff')
-    input.add_argument('-ap','--accepted_primers', type = str, help = 'primer design output file from desgin function', required=True)
-    input.add_argument('-rp','--reference_design', type = str, help = '(reference) design that can be plotted against the designed amplicons for comparision', default=None)
-    input.add_argument('-r','--read_size', type = str, help = 'size of the designed amplicons', default='unknown-')
+    input.add_argument('-gff','--gff_features', type = str, help = 'Genomic feature file .gff for the corresponding genome', default=f'{db}/MTB-h37rv_asm19595v2-eg18.gff')
+    input.add_argument('-ap','--accepted_primers', type = str, help = 'Primer design output file from desgin function', required=True)
+    input.add_argument('-rp','--reference_design', type = str, help = '(reference) Design that can be plotted against the designed amplicons for comparision', default=None)
+    input.add_argument('-r','--read_size', type = str, help = 'Size of the designed amplicons', default='unknown-')
     
     #output
     output=parser_sub.add_argument_group("output options")
-    output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output_folder_path (accepted_primers, SNP_inclusion, gene_covered)', required=True)
+    output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'Output_folder_path (accepted_primers, SNP_inclusion, gene_covered)', required=True)
     parser_sub.set_defaults(func=main_plotting)
 
     args = parser.parse_args()
