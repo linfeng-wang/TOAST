@@ -213,7 +213,7 @@ def place_amplicon_spol(full_data, target_coverage, read_size, ref_genome, prime
         primer_pool, accepted_primers, no_primer = p_s.result_extraction(primer_pool, accepted_primers, seq_template, run+1, padding, ref_genome, high_b, low_b, read_size, full_data_cp, check_snp, freq_cutoff=50000)
         # primer_pool, accepted_primers, no_primer = p_s.result_extraction(primer_pool, accepted_primers, seq_template, run+1, padding, ref_genome = ref_genome, high_b = high_b, low_b = low_b, read_size = read_size, priority = full_data_cp, freq_cutoff=50000, check_snp=check_snp)
         no_primer_.extend(no_primer)
-        print(no_primer_)
+        # print(no_primer_)
 
         # if no_primer[-1] == 'Redesigned':
         #     redesign_flag = True
@@ -225,8 +225,8 @@ def place_amplicon_spol(full_data, target_coverage, read_size, ref_genome, prime
             print('No suitable primers found')
             break
         
-        print('start_p', 'end_p')
-        print(start_p, end_p)
+        # print('start_p', 'end_p')
+        # print(start_p, end_p)
         # c = full_data_cp.shape[0]
         # full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = full_data_cp['weight'].min()/10/c  # set the weight of the covered positions smaller
         full_data_cp.loc[(full_data_cp['genome_pos']>=int(start_p)) & (full_data_cp['genome_pos']<=int(end_p)), 'weight'] = 0 # set the weight of the covered positions smaller

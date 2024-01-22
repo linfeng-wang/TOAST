@@ -255,32 +255,34 @@ def main(args):
     # whether or not you wanna include spoligotyping sequencing
     spoligotype = args.spoligo_coverage
     covered_ranges_spol = []
-    if spoligotype:            
+    # if spoligotype:            
 
-        print('=====Spoligotype amplicon=====')
+    #     print('=====Spoligotype amplicon=====')
 
-        spacers = pd.read_csv(args.spoligo_sequencing_file, sep='\t', header=None)
-        spacers = np.array(spacers)
-        spacers = spacers[:, 1:3]
-        spacers = spacers.tolist()
-        flattened_data = [item for sublist in spacers for item in sublist]
-        spacer_max = max(flattened_data)
-        spacer_min = min(flattened_data)
-        spol_list = np.arange(spacer_min-400,spacer_max+400,1)
-        weight = [0.01]*len(spol_list) 
-        spol_data = pd.DataFrame({'genome_pos':spol_list,'weight':weight})
-        # Create a list of boolean masks, one for each range
-        masks = [(spol_data['genome_pos'] >= start) & (spol_data['genome_pos'] <= end) for start, end in spacers]
-        # Use reduce and the | operator to combine the masks into a single mask
-        combined_mask = reduce(lambda x, y: x | y, masks)
-        # Use .loc and the combined mask to update the weight column
-        spol_data.loc[combined_mask, 'weight'] = 1
-        covered_positions_spol, covered_ranges_spol, full_data_cp, primer_pool, accepted_primers, no_primer_ = Amplicon_no.place_amplicon_spol(spol_data, 1, read_size, ref_genome, primer_pool, accepted_primers, no_primer_, padding=padding, graphic_output=False, check_snp=False)
-        covered_ranges = covered_ranges + covered_ranges_spol
-        # print(covered_ranges)
-        # print(covered_ranges_spol)
-        # covered_ranges_spol = Amplicon_no.place_amplicon_spol(spol_data, 1, read_size, graphic_output=False, ref_size = w.genome_size(ref_genome))
-        # covered_ranges.extend(covered_ranges_spol)
+    #     spacers = pd.read_csv(args.spoligo_sequencing_file, sep='\t', header=None)
+    #     spacers = np.array(spacers)
+    #     spacers = spacers[:, 1:3]
+    #     spacers = spacers.tolist()
+    #     flattened_data = [item for sublist in spacers for item in sublist]
+    #     spacer_max = max(flattened_data)
+    #     spacer_min = min(flattened_data)
+    #     spol_list = np.arange(spacer_min-400,spacer_max+400,1)
+    #     weight = [0.01]*len(spol_list) 
+    #     spol_data = pd.DataFrame({'genome_pos':spol_list,'weight':weight})
+    #     # Create a list of boolean masks, one for each range
+    #     masks = [(spol_data['genome_pos'] >= start) & (spol_data['genome_pos'] <= end) for start, end in spacers]
+    #     # Use reduce and the | operator to combine the masks into a single mask
+    #     combined_mask = reduce(lambda x, y: x | y, masks)
+    #     # Use .loc and the combined mask to update the weight column
+    #     spol_data.loc[combined_mask, 'weight'] = 1
+    #     covered_positions_spol, covered_ranges_spol, full_data_cp, primer_pool, accepted_primers, no_primer_ = Amplicon_no.place_amplicon_spol(spol_data, 1, read_size, ref_genome, primer_pool, accepted_primers, no_primer_, padding=padding, graphic_output=False, check_snp=False)
+    #     covered_ranges = covered_ranges + covered_ranges_spol
+    #     # print(covered_ranges)
+    #     # print(covered_ranges_spol)
+    #     # covered_ranges_spol = Amplicon_no.
+    # 
+    #(spol_data, 1, read_size, graphic_output=False, ref_size = w.genome_size(ref_genome))
+    #     # covered_ranges.extend(covered_ranges_spol)
 
     read_number = user_defined_no + specific_gene_data_count + non_specific_gene_data_count + len(covered_ranges_spol)
     # output
@@ -451,6 +453,15 @@ def main(args):
     out.columns = ['col0', 'col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
     condition = ~((out['col3'].str.contains('Designed')) & (out['col3'].str.contains('User')))
     out = out[condition]
+    
+    if spoligotype:
+        print('=====Spoligotype amplicon=====')
+        print('Appending spoligotype primers...')
+        db = '/'.join(__file__.split('/')[:-1]) + '/db'
+        spol_p = pd.read_csv(f'{db}/spoligo_primer.bed', sep='\t', header=None)
+        spol_p.columns = columns = ['col0', 'col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
+        out = pd.concat([out, spol_p])
+    
     out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False)
     
     print('-'*30)
@@ -587,8 +598,7 @@ def main_plotting(args):
 #         main_amplicon_no(args)
 #     if args.command == 'plotting':
 #         main_plotting(args)
-        
-        
+
 def cli():
     # if args.db==None:
     db = '/'.join(__file__.split('/')[:-1]) + '/db'
