@@ -27,18 +27,70 @@ import pandas as pd
 from toast import plotting1 as p
 # from icecream import ic
 from tabulate import tabulate
-def user_defined(str: primer_input):
-    primer_input = primer_input.split(',')
-    primer_input = [item.strip() for item in primer_input]
+
+def user_defined(primer_input_file: str, refgenome: str, full_data: pd.DataFrame):
+    primer_input = pd.read_csv(primer_input_file)
+    pLeft_ID = []
+    pLeft_coord = []
+    pLeft_length = []
+    pLeft_Sequences = []
+    pRight_ID = []
+    pRight_coord = []
+    pRight_length = []
+    pRight_Sequences = []
+    Project_size = []
+    Designed_ranges = []
+
+    for i, x in primer_input.iterrows():
+        # print(x)
+        # print(x[0], x[1], x[2])
+        # print(type(x[0]), type(x[1]), type(x[2]))
+        pLeft_ID.append(x.iloc[2]+'-UserLeft')
+        locl = primer_selection.find_sequence_location(x.iloc[0], refgenome)[0]
+        pLeft_coord.append(locl)
+        pLeft_length.append(len(x.iloc[0]))
+        pLeft_Sequences.append(x.iloc[0])
+        pRight_ID.append(x.iloc[2]+'-UserRight')
+        locr = primer_selection.find_sequence_location(primer_selection.reverse_complement_sequence(x.iloc[1]), refgenome)[1]
+        pRight_coord.append(locr)
+        pRight_length.append(len(x.iloc[1]))
+        pRight_Sequences.append(x.iloc[1])
+        Project_size.append(locr - locl)
+        Designed_ranges.append([locl, locr])
+    
     columns = ['pLeft_ID', 'pLeft_coord', 'pLeft_length', 'pLeft_Tm', 'pLeft_GC', 
-            'pLeft_Sequences', 'pLeft_EndStability', 'pRight_ID', 'pRight_coord', 
-            'pRight_length', 'pRight_Tm', 'pRight_GC', 'pRight_Sequences', 
-            'pRight_EndStability', 'Penalty', 'Product_size', 'Amplicon_type', 
-            'Designed_ranges']
-    # Create an empty DataFrame with these columns
+                'pLeft_Sequences', 'pLeft_EndStability', 'pRight_ID', 'pRight_coord', 
+                'pRight_length', 'pRight_Tm', 'pRight_GC', 'pRight_Sequences', 
+                'pRight_EndStability', 'Penalty', 'Product_size', 'Amplicon_type']
+                # 'Designed_ranges']
     df = pd.DataFrame(columns=columns)
 
-df.head()  # Display the DataFrame (it will be empty)
+    df['pLeft_ID'] = pLeft_ID
+    df['pLeft_coord'] = pLeft_coord
+    df['pLeft_length'] = pLeft_length
+    df['pLeft_Sequences'] = pLeft_Sequences
+    df['pRight_ID'] = pRight_ID
+    df['pRight_coord'] = pRight_coord
+    df['pRight_length'] = pRight_length
+    df['pRight_Sequences'] = pRight_Sequences
+    df['Product_size'] = Project_size
+    # df['Designed_ranges'] = Designed_ranges
+    df['pLeft_Tm'] = '-'
+    df['pLeft_GC'] = '-'
+    df['pLeft_EndStability'] = '-'
+    df['pRight_Tm'] = '-'
+    df['pRight_GC'] = '-'
+    df['pRight_EndStability'] = '-'
+    df['Penalty'] = '-'
+    df['Amplicon_type'] = 'User-defined'
+
+    full_data.loc[(full_data['genome_pos'] >= locl) & (full_data['genome_pos'] <= locr), 'weight'] = 0
+
+    primer_pool = pRight_Sequences + pLeft_Sequences
+    covered_ranges = [[locl, locr]]
+
+    return df, primer_pool, full_data, covered_ranges
+    # Create an empty DataFrame with these columns
 
 def main(args):
     print('>>>Designing Amplicons')
@@ -62,6 +114,7 @@ def main(args):
     print(f"Amplicon Size: {args.amplicon_size}")
     print(f"SNP Priority: {args.snp_priority}")
     print(f"Reference Genome: {args.reference_genome}")
+    print(f"User defined primers: {args.user_defined_primers}")
     if args.padding_size == None:
         print(f"Padding_size: {args.amplicon_size/4}")
     else:
@@ -106,7 +159,7 @@ def main(args):
     # full data - priority file with weights&frequency for each snp
     full_data= pd.read_csv(args.snp_priority)
     full_data = full_data[~full_data['drugs'].isna()]
-    full_gene = full_data[~full_data['type'].isin(['synonymous_variant','non_coding_transcript_exon_variant'])]
+    # full_gene = full_data[~full_data['type'].isin(['synonymous_variant','non_coding_transcript_exon_variant'])]
     full_data = full_data.sort_values(by=['genome_pos'])
     full_data = full_data.reset_index(drop=True)
     full_data['weight'] = full_data['freq']
@@ -126,11 +179,26 @@ def main(args):
         specific_gene = [item.strip() for item in specific_gene]
         for x in specific_gene:
             if x not in full_data['gene'].unique():
-                print(f'Error: {x} is not a valid gene name')
-                return 0
+                raise Exception(f'Error: {x} is not a valid gene name')
     else:
         specific_gene = []
 
+    primer_input_file = args.user_defined_primers
+
+    covered_positions, covered_ranges = [], []
+    primer_pool, no_primer_ = [], []
+    accepted_primers = pd.DataFrame(columns = ['pLeft_ID', 'pLeft_coord', 'pLeft_length', 'pLeft_Tm', 'pLeft_GC',
+        'pLeft_Sequences', 'pLeft_EndStability', 'pRight_ID', 'pRight_coord',
+        'pRight_length', 'pRight_Tm', 'pRight_GC', 'pRight_Sequences',
+        'pRight_EndStability', 'Penalty', 'Product_size'])
+
+    user_defined_no = 0
+    if args.user_defined_primers != None:
+        print('=====User defined amplicon file detected=====')
+        accepted_primers, primer_pool, full_data, covered_ranges = user_defined(primer_input_file, ref_genome, full_data)
+        user_defined_no = accepted_primers.shape[0]
+    
+    # print(accepted_primers)
     # non_specific_gene = []
     # specific_gene_amplicon
     specific_gene_amplicon = args.specific_amplicon_no
@@ -155,20 +223,13 @@ def main(args):
     # target_coverage = 1
     # gene_coverage = Amplicon_no.place_amplicon_search(full_data, target_coverage, read_size, genome_size(ref_genome))
 
-    covered_positions, covered_ranges = [], []
-    primer_pool, no_primer_ = [], []
-    accepted_primers = pd.DataFrame(columns = ['pLeft_ID', 'pLeft_coord', 'pLeft_length', 'pLeft_Tm', 'pLeft_GC',
-        'pLeft_Sequences', 'pLeft_EndStability', 'pRight_ID', 'pRight_coord',
-        'pRight_length', 'pRight_Tm', 'pRight_GC', 'pRight_Sequences',
-        'pRight_EndStability', 'Penalty', 'Product_size'])
-
     if len(specific_gene)>0:
         print('=====Specific amplicon=====')
         
         # def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.'):
     
-        covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, args.graphic_option, padding=padding, output_path =output_path)
-        specific_gene_data_count = accepted_primers.shape[0]                                                  
+        covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, args.graphic_option, padding=padding, output_path=output_path)
+        specific_gene_data_count = accepted_primers.shape[0] - user_defined_no                                          
         print('=====Non-specific amplicon=====')
         for (x, y) in covered_ranges_sp:
             condition = (non_specific_gene_data['genome_pos'] >= x) & (non_specific_gene_data['genome_pos'] <= y)
@@ -177,20 +238,20 @@ def main(args):
         # non_specific_gene_data.update(specific_gene_data) # add the specific gene data to the non-specific gene data
         covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, args.graphic_option, padding=padding, output_path =output_path)
         covered_positions = {**covered_positions_sp, **covered_positions_nosp}
-        
-        covered_ranges = covered_ranges_sp + covered_ranges_nosp
-        non_specific_gene_data_count = accepted_primers.shape[0] - specific_gene_data_count
+    
+        covered_ranges = covered_ranges + covered_ranges_sp + covered_ranges_nosp
+        non_specific_gene_data_count = accepted_primers.shape[0] - user_defined_no - specific_gene_data_count
         
     else:
         if args.non_specific_amplicon_no > 0:
             print('=====Non-specific amplicon=====')
             covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_,ref_genome, args.graphic_option, padding=padding, output_path =output_path)
             covered_positions = covered_positions_nosp
-            covered_ranges = covered_ranges_nosp
-            non_specific_gene_data_count = accepted_primers.shape[0]
+            covered_ranges = covered_ranges + covered_ranges_nosp
+            non_specific_gene_data_count = accepted_primers.shape[0] - user_defined_no
         else:
             pass
-
+        
     # whether or not you wanna include spoligotyping sequencing
     spoligotype = args.spoligo_coverage
     covered_ranges_spol = []
@@ -221,7 +282,7 @@ def main(args):
         # covered_ranges_spol = Amplicon_no.place_amplicon_spol(spol_data, 1, read_size, graphic_output=False, ref_size = w.genome_size(ref_genome))
         # covered_ranges.extend(covered_ranges_spol)
 
-    read_number = specific_gene_data_count + non_specific_gene_data_count + len(covered_ranges_spol)
+    read_number = user_defined_no + specific_gene_data_count + non_specific_gene_data_count + len(covered_ranges_spol)
     # output
     primer_label = [f'Gene_specific:{args.specific_amplicon_gene}']*specific_gene_data_count + ['Non_specific']*non_specific_gene_data_count + ['Spoligotype']*len(covered_ranges_spol)
     # print(primer_label)
@@ -233,8 +294,13 @@ def main(args):
     # print(covered_ranges)
     # print(accepted_primers)
     # print(no_primer_)
+    if 'Amplicon_type' in accepted_primers.columns:   
+        cleaned_list = accepted_primers['Amplicon_type'].tolist()[:user_defined_no]
+        primer_label = cleaned_list + primer_label
     accepted_primers['Amplicon_type'] = primer_label
     # accepted_primers['Redesign'] = no_primer_
+    # print(covered_ranges)
+    # print(accepted_primers.shape)
     accepted_primers['Designed_ranges'] = covered_ranges
     accepted_primers.reset_index(inplace = True)
     
@@ -277,8 +343,20 @@ def main(args):
         sp = ''
 
     # Apply modifications
-    accepted_primers['pLeft_ID'] = accepted_primers.apply(lambda x: w.modify_primer_name(x['pLeft_ID'], x['Amplicon_type'], 'L'), axis=1)
-    accepted_primers['pRight_ID'] = accepted_primers.apply(lambda x: w.modify_primer_name(x['pRight_ID'], x['Amplicon_type'], 'R'), axis=1)
+    for index, row in accepted_primers.iterrows():
+        if row['Amplicon_type'] == 'User-defined':
+            continue
+        else:            
+            accepted_primers.at[index, 'pLeft_ID'] = w.modify_primer_name(row['pLeft_ID'], row['Amplicon_type'], 'L')
+    for index, row in accepted_primers.iterrows():
+        if row['Amplicon_type'] == 'User-defined':
+            continue
+        else:
+            accepted_primers.at[index, 'pRight_ID'] = w.modify_primer_name(row['pRight_ID'], row['Amplicon_type'], 'R')
+            
+
+    # accepted_primers['pLeft_ID'] = accepted_primers.apply(lambda x: w.modify_primer_name(x['pLeft_ID'], x['Amplicon_type'], 'L'), axis=1)
+    # accepted_primers['pRight_ID'] = accepted_primers.apply(lambda x: w.modify_primer_name(x['pRight_ID'], x['Amplicon_type'], 'R'), axis=1)
 
     op = f'{output_path}/Amplicon_design_output'
     os.makedirs(op, exist_ok=True) #output path
@@ -288,7 +366,7 @@ def main(args):
     columns = ['pLeft_ID', 'pRight_ID', 'pLeft_coord', 'pRight_coord', 'SNP_inclusion']
 
     # Create an empty DataFrame with the specified column headings
-    primer_inclusion =pd.DataFrame(columns=columns)
+    primer_inclusion = pd.DataFrame(columns=columns)
     for i, row in accepted_primers.iterrows():
         data = full_data[(full_data['genome_pos']>= row['pLeft_coord']) & (full_data['genome_pos']<= row['pRight_coord'])]    
         info = row[['pLeft_ID', 'pRight_ID', 'pLeft_coord', 'pRight_coord']]
@@ -296,7 +374,7 @@ def main(args):
         info['SNP_inclusion'] = ','.join(SNP)
         primer_inclusion.loc[len(primer_inclusion)] = info.tolist()
 
-    primer_inclusion.to_csv(f'{op}/SNP_inclusion-{read_number}-{read_size}{sp}.csv',index=False)
+    primer_inclusion.to_csv(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv',index=False)
 
 
     if specific_gene_amplicon>0 or non_specific_amplicon>0:
@@ -350,6 +428,10 @@ def main(args):
     for i, x in accepted_primers.iterrows():
         designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}"
         amplicone_name = f"A{i+1}-{x['pLeft_ID'].split('-')[1]}"
+        amplicone_name = amplicone_name.replace('UserLeft', 'UserDefined')
+        if 'User' not in designed_range_name:
+            designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+            amplicone_name = f"A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
         out_bed[designed_range_name] = x['Designed_ranges']
         # out_bed[amplicone_name] = [x['pLeft_coord'], x['pRight_coord']+x['pRight_length']]
         out_bed[amplicone_name] = [x['pLeft_coord'], x['pRight_coord']]
@@ -366,9 +448,12 @@ def main(args):
     out[6] = out[0] # thickStart
     out[7] = out[1] #ThickEnd
     out[8] = colors # itemRgb
-    
+    out.columns = ['col0', 'col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
+    condition = ~((out['col3'].str.contains('Designed')) & (out['col3'].str.contains('User')))
+    out = out[condition]
     out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False)
     
+    print('-'*30)
     print('Primer design output files:')
     print(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv')
     print(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}.csv')
@@ -420,8 +505,6 @@ def main_plotting(args):
     read_size = args.read_size
     p.plotting(priority, read_size, accepted_primers, gff, reference_design, output_dir)
     return 0
-    
-    
     
 # %%
 # if __name__ == "__main__":
@@ -590,7 +673,7 @@ def cli():
     input.add_argument('-ref','--reference_genome', type = str, help = 'reference fasta file (default: MTB-h37rv genome)', default=f'{db}/MTB-h37rv_asm19595v2-eg18.fa')
     input.add_argument('-sp_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = f'{db}/spacers.bed')
     input.add_argument('-as','--all_snps', type = str, help = 'All SNPs in the reference genome', default = f'{db}/all_snps.csv')
-    
+    input.add_argument('-ud','--user_defined_primers', type = str, help = 'user defined amplicon designs', default = None)
     #design
     setting=parser_sub.add_argument_group("Design options")
     setting.add_argument('-a','--amplicon_size', type = int, help = 'Amplicon size', default=400)

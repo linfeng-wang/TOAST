@@ -237,8 +237,6 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
             # fig.show()
             fig.write_image(f"{op}/{window_size}bps_Amplicon-#{run+1}_df_size{full_data.shape[0]}.png")
             print(f'**Graphic output saved to: {op}')
-
-
         
         start_r = pos[np.argmax(weight_window_sum)] # find the index of the max value in the rolling sum
         # in_range = [i for i in pos if i <= start+window_size] # find all values in the window
@@ -312,9 +310,12 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
     return covered_positions, designed_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
 
 def modify_primer_name(primer, amplicon_type, L_R):
-    prefix = 'sp' if 'Gene_specific' in amplicon_type else 'ns' if 'Non_specific' in amplicon_type else 'spol' if 'Spoligotype' in amplicon_type else ''
-    parts = primer.split('-')
-    if len(parts) > 1:
-        parts[-1] = L_R + str(int(parts[-1][1:]) + 1)  # Increment the number
-    parts.insert(1, prefix)
-    return '-'.join(parts)
+    if 'User' in primer:
+        return primer
+    else:
+        prefix = 'sp' if 'Gene_specific' in amplicon_type else 'ns' if 'Non_specific' in amplicon_type else 'spol' if 'Spoligotype' in amplicon_type else ''
+        parts = primer.split('-')
+        if len(parts) > 1:
+            parts[-1] = L_R + str(int(parts[-1][1:]) + 1)  # Increment the number
+        parts.insert(1, prefix)
+        return '-'.join(parts)

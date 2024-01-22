@@ -1,0 +1,2 @@
+index,pLeft_ID,pLeft_coord,pLeft_length,pLeft_Tm,pLeft_GC,pLeft_Sequences,pLeft_EndStability,pRight_ID,pRight_coord,pRight_length,pRight_Tm,pRight_GC,pRight_Sequences,pRight_EndStability,Penalty,Product_size,Amplicon_type,Designed_ranges
+0,P1-spol-DRa,-,18,-,55.0,GGTTTTGGGTCTGACGAC,-,P1-spol-Drb,-,18,-,60.0,CCGAGAGGGGACGGAAAC,-,-,-,Spoligotype,"[-, -]"
