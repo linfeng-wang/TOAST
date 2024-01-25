@@ -5,7 +5,7 @@ strain_analysis/Strain_calling_models/read_pos.csv
 *.vcf
 *.vcf.gz
 *.cram
-*.json
+# *.json
 *.png
 *.fastq
 variants_full.csv
