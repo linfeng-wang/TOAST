@@ -34,6 +34,8 @@ Get to the code directory
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpsL -nn 0 
 
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpsL -nn 0 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv
+
+    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB -nn 0 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv -sc
     ```
 3. Check amplicon design using coverage plot (*plotting* function)
     - Example: 
@@ -42,3 +44,29 @@ Get to the code directory
     
     toast plotting -ap /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output/Amplicon_design_output/Primer_design-accepted_primers-42-400.csv -rp ../db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
     ``` 
+
+
+
+
+
+## Primer3 Configuration Parameters
+
+- **PRIMER_NUM_RETURN**: Number of primer pairs to return.
+- **PRIMER_PICK_INTERNAL_OLIGO**: Flag to pick internal oligos (0 for no, 1 for yes).
+- **PRIMER_INTERNAL_MAX_SELF_END**: Maximum self-complementarity score for internal oligos.
+- **PRIMER_MIN_SIZE**: Minimum primer size in bases.
+- **PRIMER_MAX_SIZE**: Maximum primer size in bases.
+- **PRIMER_MIN_TM**: Minimum melting temperature (Tm) for primers in °C.
+- **PRIMER_MAX_TM**: Maximum melting temperature (Tm) for primers in °C.
+- **PRIMER_MIN_GC**: Minimum GC content in percent for primers.
+- **PRIMER_MAX_GC**: Maximum GC content in percent for primers.
+- **PRIMER_MAX_POLY_X**: Maximum length of mononucleotide repeats in primers.
+- **PRIMER_INTERNAL_MAX_POLY_X**: Maximum length of mononucleotide repeats in internal oligos.
+- **PRIMER_SALT_MONOVALENT**: Concentration of monovalent salts (e.g., Na+, K+) in mM.
+- **PRIMER_DNA_CONC**: Concentration of DNA template in nM.
+- **PRIMER_MAX_NS_ACCEPTED**: Maximum number of unknown bases (N's) accepted in primers.
+- **PRIMER_MAX_SELF_ANY**: Maximum overall self-complementarity score for primers.
+- **PRIMER_MAX_SELF_END**: Maximum 3' end self-complementarity score for primers.
+- **PRIMER_PAIR_MAX_COMPL_ANY**: Maximum overall complementarity score between primer pairs.
+- **PRIMER_PAIR_MAX_COMPL_END**: Maximum 3' end complementarity score between primer pairs.
+- **PRIMER_PRODUCT_SIZE_RANGE**: Range of acceptable primer product sizes (e.g., "100-300").

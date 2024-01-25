@@ -5,7 +5,6 @@
 # from random import choices, randint, randrange, random, sample
 # from typing import List, Optional, Callable, Tuple
 # from importlib import reload
-
 import numpy as np
 # from geneticalgorithm import geneticalgorithm as ga
 import pandas as pd
@@ -21,7 +20,6 @@ from primer3 import calc_heterodimer
 from primer3 import bindings
 from Bio import SeqIO
 from toast import Thermo
-import json
 # reload(Thermo)
 # %%
 def calculate_gc_content(sequence):
@@ -30,7 +28,6 @@ def calculate_gc_content(sequence):
 
     Args:
         sequence (str): DNA sequence string.
-
     Returns:
         float: Percentage of G and C nucleotides in the sequence.
     """
@@ -85,7 +82,7 @@ def reverse_complement_sequence(seq):
     reverse_seq = seq[::-1]
     return "".join(complement[base] for base in reverse_seq)
 
-def updown_stream_primer_range(start_pos, end_pos, dis_range=0):
+def updown_stream_primer_range(start_pos, end_pos, dis_range=150):
     up_stream = complement_sequence(extract_sequence_from_fasta(start_pos-dis_range, start_pos))
     down_stream = reverse_complement_sequence(extract_sequence_from_fasta(end_pos, end_pos+dis_range))
     return up_stream, down_stream
@@ -305,15 +302,12 @@ def check_for_snp(seq, priority, plength, forward, ref_genome, cut_off=50000, sp
         return False
     
 # %%
-def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref_genome, high_b, low_b, read_size, priority, check_snp, global_args, freq_cutoff=50000, _is_recursive='none'):
+def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref_genome, high_b, low_b, read_size, priority, check_snp, freq_cutoff=50000, _is_recursive='none'):
     # print([len(sequence)-50,len(sequence)+50])
     # print(len(sequence))
     # size_range = f'{int(len(sequence)-padding*1.3)}-{int(len(sequence)-padding*1)}'
     size_range = f'{len(sequence)-padding*2}-{len(sequence)}'
-    with open(global_args, 'r') as file:
-        global_args_dict = json.load(file)
-        global_args_dict['PRIMER_PRODUCT_SIZE_RANGE'] = size_range
-        
+    
     genome = extract_sequence_from_fasta(0, genome_size(ref_genome),padding=0, fasta_file=ref_genome)
     no_primer = []
     ok_region_list = [0, padding,len(sequence)-padding,padding]
@@ -334,7 +328,38 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                 # 'SEQUENCE_INCLUDED_REGION': [(0,padding),(len(sequence)-padding,len(sequence))],
                 # 'SEQUENCE_EXCLUDED_REGION':[(padding,len(sequence)-padding)]
             },
-            global_args=global_args_dict)
+            global_args={
+                'PRIMER_NUM_RETURN': 16,
+                # 'PRIMER_OPT_SIZE': 20,
+                'PRIMER_PICK_INTERNAL_OLIGO': 0,
+                'PRIMER_INTERNAL_MAX_SELF_END': 8,
+                'PRIMER_MIN_SIZE': 18,
+                'PRIMER_MAX_SIZE': 24,
+                # 'PRIMER_OPT_TM': 62.0,
+                'PRIMER_MIN_TM': 58.0,
+                'PRIMER_MAX_TM': 80.0,
+                'PRIMER_MIN_GC': 45.0,
+                'PRIMER_MAX_GC': 68.0,
+                'PRIMER_MAX_POLY_X': 5,
+                'PRIMER_INTERNAL_MAX_POLY_X': 5,
+                'PRIMER_SALT_MONOVALENT': 50.0,
+                'PRIMER_DNA_CONC': 50.0,
+                'PRIMER_MAX_NS_ACCEPTED': 0,
+                # 'PRIMER_MAX_SELF_ANY': 5,
+                # 'PRIMER_MAX_SELF_END': 2,
+                # 'PRIMER_PAIR_MAX_COMPL_ANY': 5,
+                # 'PRIMER_PAIR_MAX_COMPL_END': 2,
+                'PRIMER_MAX_SELF_ANY': 10,
+                'PRIMER_MAX_SELF_END': 8,
+                'PRIMER_PAIR_MAX_COMPL_ANY': 9,
+                'PRIMER_PAIR_MAX_COMPL_END': 8,
+                'PRIMER_PRODUCT_SIZE_RANGE': size_range,
+                # 'PRIMER_PRODUCT_SIZE_RANGE': '950-1050',
+                # 'PRIMER_PRODUCT_SIZE_RANGE': [
+                #     # [950,1050]
+                #     [len(sequence)-350,len(sequence)-250]
+                # ],
+            })
     except:
         print('!!!Primer extraction error')
     # print(results)
@@ -404,17 +429,15 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                 if check_for_snp(row['pLeft_Sequences'], priority, row['pLeft_length'], True, ref_genome, cut_off=freq_cutoff) or check_for_snp(row['pRight_Sequences'], priority, row['pRight_length'], False, ref_genome, cut_off=freq_cutoff):
                     print(f'Primer pair #{i+1} binding position has SNP')
                     continue
-            # print('low_b',low_b, 'row[pLeft_coord]',row['pLeft_coord'])
-            # print('high_b',high_b, 'row[pRight_coord]',row['pRight_coord'])
-            if abs(low_b - row['pLeft_coord']) > read_size/2:
-            # if abs(low_b - row['pLeft_coord']) > read_size/2 or ~(low_b - row['pLeft_coord'])>0:
+            # if abs(low_b - row['pLeft_coord']) > read_size/1:
+            if abs(low_b - row['pLeft_coord']) > read_size/1 and ~(low_b - row['pLeft_coord'])>0:
                 # print('low')
                 # print(low_b, row['pLeft_coord'])
                 # print(abs(low_b - row['pLeft_coord']))
                 left_ok = False
                 too_far = True
-            if abs(high_b - row['pRight_coord']) > read_size/2:
-            # if abs(high_b - row['pRight_coord']) > read_size/2 or ~(high_b - row['pRight_coord'])<0:
+            # if abs(high_b - row['pRight_coord']) > read_size/1:
+            if abs(high_b - row['pRight_coord']) > read_size/1 and ~(high_b - row['pRight_coord'])<0:
                 # print('high')
                 # print(high_b, row['pRight_coord'])
                 # print(abs(high_b - row['pRight_coord']))
@@ -454,7 +477,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                 accepted_primers = pd.concat([accepted_primers, row_df],axis=0)
                 print(f'-> Primer pair #{i+1} accepted')
                 # print(low_b, row['pLeft_coord'])
-                # print(abs(low_b - row['pLeft_coord']) > read_size/2)
+                # print(abs(low_b - row['pLeft_coord']) > read_size/1)
                 no_primer.append('-')
                 # print('***')
                 break
@@ -476,8 +499,8 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                     # print('pass2')
                     status = 'Redesigned'
                     
-                    if abs(low_b - row['pLeft_coord']) > read_size/2:
-                    # if abs(low_b - row['pLeft_coord']) > read_size/2 or ~abs(low_b - row['pLeft_coord'])>0:
+                    # if abs(low_b - row['pLeft_coord']) > read_size/1:
+                    if abs(low_b - row['pLeft_coord']) > read_size/1 or ~abs(low_b - row['pLeft_coord'])>0:
                         print('!Problem with *left(forward)* primer', _is_recursive)
                         if _is_recursive=='right':
                             pass
@@ -499,8 +522,8 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                                 # primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome = ref_genome, high_b = high_b, low_b = low_b, priority=priority, read_size = read_size)
                                 primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome, high_b, low_b, read_size, priority, check_snp, freq_cutoff=50000, _is_recursive='left')
 
-                    if abs(high_b - row['pRight_coord']) > read_size/2:
-                    # if abs(high_b - row['pRight_coord']) > read_size/2 or ~(high_b - row['pRight_coord'])<0:
+                    # if abs(high_b - row['pRight_coord']) > read_size/1:
+                    if abs(high_b - row['pRight_coord']) > read_size/1 and ~(high_b - row['pRight_coord'])<0:
     
                         print('!Problem with *right)* primer', _is_recursive)
 
@@ -545,16 +568,16 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                 if check_for_snp(row['pLeft_Sequences'], priority, row['pLeft_length'], True, ref_genome) or check_for_snp(row['pRight_Sequences'], priority, row['pRight_length'], False, ref_genome):
                     print(f'Primer pair #{i+1} binding position has SNP')
                     continue
-            if abs(low_b - row['pLeft_coord']) > read_size/2:
-            # if abs(low_b - row['pLeft_coord']) > read_size/2 or ~(low_b - row['pLeft_coord'])>0:
+            # if abs(low_b - row['pLeft_coord']) > read_size/1:
+            if abs(low_b - row['pLeft_coord']) > read_size/1 and ~(low_b - row['pLeft_coord'])>0:
                 
                 # print('low')
                 # print(low_b, row['pLeft_coord'])
                 # print(abs(low_b - row['pLeft_coord']))
                 left_ok = False
                 too_far = True
-            if abs(high_b - row['pRight_coord']) > read_size/2:
-            # if abs(high_b - row['pRight_coord']) > read_size/2 or ~(high_b - row['pRight_coord'])<0:
+            # if abs(high_b - row['pRight_coord']) > read_size/1:
+            if abs(high_b - row['pRight_coord']) > read_size/1 and ~(high_b - row['pRight_coord'])<0:
                 # print('high')
                 # print(high_b, row['pRight_coord'])
                 # print(abs(high_b - row['pRight_coord']))
@@ -607,7 +630,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                 accepted_primers = pd.concat([accepted_primers, row_df],axis=0)
                 print(f'-> Primer pair #{i+1} accepted')
                 # print(low_b, row['pLeft_coord'])
-                # print(abs(low_b - row['pLeft_coord']) > read_size/2)
+                # print(abs(low_b - row['pLeft_coord']) > read_size/1)
                 no_primer.append('-')
                 # print('***')
                 break
@@ -628,8 +651,8 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                     # print('pass2')
                     status = 'Redesigned'
 
-                    if abs(low_b - row['pLeft_coord']) > read_size/2:
-                    # if abs(low_b - row['pLeft_coord']) > read_size/2 or ~(low_b - row['pLeft_coord'])>=0:
+                    # if abs(low_b - row['pLeft_coord']) > read_size/1:
+                    if abs(low_b - row['pLeft_coord']) > read_size/1 and ~(low_b - row['pLeft_coord'])>=0:
                         
                         left_ok = False
                         print('!Problem with *left* primer', _is_recursive)
@@ -657,8 +680,8 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                             print(f'Redesigning primers for the new range ({change}bps): {low_b, high_b} instead of {low_b-int(change), high_b}')
                             primer_pool, accepted_primers, no_primer = result_extraction(primer_pool, accepted_primers, seq_template, i+1, padding, ref_genome, high_b, low_b, read_size, priority, check_snp, freq_cutoff=50000, _is_recursive='left')
                         
-                    if abs(high_b - row['pRight_coord']) > read_size/2:
-                    # if abs(high_b - row['pRight_coord']) > read_size/2 or ~(high_b - row['pRight_coord'])<0:
+                    # if abs(high_b - row['pRight_coord']) > read_size/1:
+                    if abs(high_b - row['pRight_coord']) > read_size/1 and ~(high_b - row['pRight_coord'])<0:
     
                         print('!Problem with *right)* primer', _is_recursive)
                         right_ok = False

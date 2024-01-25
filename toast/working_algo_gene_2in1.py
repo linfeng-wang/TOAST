@@ -175,7 +175,7 @@ def nucleotide_to_iupac(nucleotides):
 #%%
 # ideal_range = []
 #place_amplicon function
-def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.', check_snp = True):
+def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, graphic_output=False, padding=150, output_path = '.', check_snp = True):
     start = time.time()
     # print( read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output, padding, output_path)
     read_number = read_number
@@ -250,7 +250,8 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         # ideal_range.append([start_r, end_r])
 
         seq_template, low_b, high_b = extraction_prep([start_r, end_r], ref_size = genome_size(ref_genome), ref_genome=ref_genome, padding=padding)
-        primer_pool, accepted_primers, no_primer = primer_selection.result_extraction(primer_pool, accepted_primers, seq_template, run+1, padding, ref_genome, high_b, low_b, read_size, full_data_cp, check_snp, freq_cutoff=50000)
+        primer_pool, accepted_primers, no_primer = primer_selection.result_extraction(primer_pool, accepted_primers, seq_template, run+1, padding, ref_genome, high_b, low_b, read_size, full_data_cp, check_snp, global_args, freq_cutoff=50000)
+        no_primer = [no_primer[-1]]
         no_primer_.extend(no_primer)
         
         if accepted_primers.shape[0] != 0:
@@ -287,7 +288,8 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
             reduce_amplicon += 1
             accepted_primers = accepted_primers.iloc[:-1]
             # print('***')
-            
+            designed_ranges = designed_ranges[:-1]
+            no_primer_ = no_primer_[:-1]
         else:
             run += 1
             covered_ranges.append([start_p, end_p])

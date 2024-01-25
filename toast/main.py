@@ -123,6 +123,7 @@ def main(args):
     if args.specific_amplicon_no > 0:
         print(f"Specific Amplicon Gene: {args.specific_amplicon_gene}")
     print(f"Non-specific Amplicon Number: {args.non_specific_amplicon_no}")
+    print(f'Amplicon search setting: {args.global_args}')
     print(f"Graphic Option: {args.graphic_option}")
     print(f"Spoligo Sequencing: {args.spoligo_coverage}")
     if args.spoligo_coverage:
@@ -154,7 +155,7 @@ def main(args):
         "thyA",
         "eis"
     ]
-
+    global_args = args.global_args
     read_size = args.amplicon_size
     # full data - priority file with weights&frequency for each snp
     full_data= pd.read_csv(args.snp_priority)
@@ -228,7 +229,7 @@ def main(args):
         
         # def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.'):
     
-        covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, args.graphic_option, padding=padding, output_path=output_path)
+        covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)
         specific_gene_data_count = accepted_primers.shape[0] - user_defined_no                                          
         print('=====Non-specific amplicon=====')
         for (x, y) in covered_ranges_sp:
@@ -236,7 +237,7 @@ def main(args):
             non_specific_gene_data.loc[condition, 'weight'] = 0
 
         # non_specific_gene_data.update(specific_gene_data) # add the specific gene data to the non-specific gene data
-        covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, args.graphic_option, padding=padding, output_path =output_path)
+        covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
         covered_positions = {**covered_positions_sp, **covered_positions_nosp}
     
         covered_ranges = covered_ranges + covered_ranges_sp + covered_ranges_nosp
@@ -245,7 +246,7 @@ def main(args):
     else:
         if args.non_specific_amplicon_no > 0:
             print('=====Non-specific amplicon=====')
-            covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_,ref_genome, args.graphic_option, padding=padding, output_path =output_path)
+            covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = w.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_,ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
             covered_positions = covered_positions_nosp
             covered_ranges = covered_ranges + covered_ranges_nosp
             non_specific_gene_data_count = accepted_primers.shape[0] - user_defined_no
@@ -300,9 +301,8 @@ def main(args):
         cleaned_list = accepted_primers['Amplicon_type'].tolist()[:user_defined_no]
         primer_label = cleaned_list + primer_label
     accepted_primers['Amplicon_type'] = primer_label
-    # accepted_primers['Redesign'] = no_primer_
-    # print(covered_ranges)
-    # print(accepted_primers.shape)
+    no_primer_ = ['-']*user_defined_no + no_primer_
+    accepted_primers['Redesign'] = no_primer_
     accepted_primers['Designed_ranges'] = covered_ranges
     accepted_primers.reset_index(inplace = True)
     
@@ -336,7 +336,7 @@ def main(args):
         # print(primer_seq)
         if row['pRight_Sequences'] != primer_seq:
             # print('SNP in the Right primer')
-            accepted_primers.loc[i, 'pRight_Sequences'] = primer_seq
+            accepted_primers.loc[i, 'pRight_Sequences'] = primer_selection.reverse_complement_sequence(primer_seq)
     
     # print(accepted_primers[['pLeft_Sequences','pRight_Sequences','pLeft_coord']].head(2))
     if spoligotype: # if spoligotype is included change labelling in output
@@ -610,7 +610,7 @@ def cli():
     Design Function - (design)
         Purpose: To design specific amplicons for TB genes.
         Inputs:
-        SNP priorities, reference genomes, spoligotype sequencing files.
+        SNP priorities, reference genomes, spoligotype sequencing files, user defined primers.
         Settings:
         Amplicon size, padding size, specific/non-specific amplicon numbers.
         Option for graphical output.
@@ -693,6 +693,7 @@ def cli():
     setting.add_argument('-nn','--non-specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying all SNPs in all genes according the importants list', default=20)
     setting.add_argument('-g','--graphic_option', action='store_true', help = 'Output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
     setting.add_argument('-sc','--spoligo_coverage', action='store_true', help = 'Whether to amplify Spoligotype', default = False)
+    setting.add_argument('-set','--global_args', help = 'Amplicon search setting', default = f'{db}/default_primer_design_setting.json')
 
     # out
     output=parser_sub.add_argument_group("Output options")
