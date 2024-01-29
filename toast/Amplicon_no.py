@@ -153,8 +153,8 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
         # fig.show() 
         if output_path:
             os.makedirs(f'{output_path}/Amplicon_num', exist_ok=True)
-            fig.write_image(f'{output_path}/Amplicon_num/coverage_trace_{target_coverage}-{read_size}bps.png')
-            print(f'**Graphic output saved to: {output_path}/Amplicon_num/coverage_trace_{target_coverage}-{read_size}bps.png')
+            fig.write_image(f'{output_path}/Amplicon_num/coverage_trace_{target_coverage}-{read_size}.pdf')
+            print(f'**Graphic output saved to: {output_path}/Amplicon_num/coverage_trace_{target_coverage}-{read_size}bps.pdf')
         else:
             print('No output path specified, graph not saved')
     # gene_coverage = covered_positions['gene'].value_counts()/full_data_cp['gene'].value_counts()
