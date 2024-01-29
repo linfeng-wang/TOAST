@@ -1,26 +1,19 @@
 #%%
-# from functools import partial
-# from random import choices, randint, randrange, random, sample
-# from typing import List, Optional, Callable, Tuple
+from functools import partial
+from random import choices, randint, randrange, random, sample
+from typing import List, Optional, Callable, Tuple
 import numpy as np
-# from geneticalgorithm import geneticalgorithm as ga
 import pandas as pd
-# from collections import Counter
-# from tqdm import tqdm
-# import time
-# from Bio.SeqUtils import MeltingTemp
-# from Bio import SeqIO
-# from plotly import graph_objects as go
-# import json
-# from imp import reload
-# import primer_selection
-# reload(primer_selection)
-# import Amplicon_no
-# reload(Amplicon_no)
-# import argparse
-# from functools import reduce
+from collections import Counter
+from Bio.SeqUtils import MeltingTemp
+from Bio import SeqIO
+from plotly import graph_objects as go
+import json
+from imp import reload
+from functools import reduce
 import os
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 #%%
@@ -141,11 +134,12 @@ def plotting(priority, read_size, accepted_primers, gff, reference_design, outpu
         })
 
         if len(df) == 0:
-            print(f'---> No SNPs found in: {gene}')
+            # print(f'---> No SNPs found in: {gene}')
             continue
         else:
-            print(f'---> SNPs found in: {gene}')
+            # print(f'---> SNPs found in: {gene}')
             pass
+            
     # getting gene ranges   
         genes_df = pd.DataFrame(columns=genes.columns.tolist())
         for i, row in genes.iterrows():
@@ -174,33 +168,26 @@ def plotting(priority, read_size, accepted_primers, gff, reference_design, outpu
             in_range = False
             start1 = row['pLeft_coord']
             end1 = row['pRight_coord']
-            start2 = df['Genomic_Position'].min()-200
-            end2 = df['Genomic_Position'].max()+200
+            start2 = df['Genomic_Position'].min()
+            end2 = df['Genomic_Position'].max()
             if (start1 <= end2) and (end1 >= start2):
                 in_range = True
                 # print(row.to_frame())
                 amplicon_df = pd.concat([amplicon_df, row.to_frame().T],axis = 0)
         amplicon_positions = []
         amplicon_names = []
-        
-        for i, row in amplicon_df.iterrows():
-            amplicon_positions.append((row['pLeft_coord'], row['pRight_coord']))
-            amplicon_names.append(row['pLeft_ID'])
-            
         if amplicon_df.shape[0] == 0:
             flag = 0
-            print('! Amplicons not strictly in {gene} gene range')
-            # amp_pos = [item for tup in amplicon_positions for item in tup]
-            continue            
+            # continue
         else:
             flag = 1
             amp_pos = [item for tup in amplicon_positions for item in tup]
 
             # pass
             
-        # for i, row in amplicon_df.iterrows():
-        #     amplicon_positions.append((row['pLeft_coord'], row['pRight_coord']))
-        #     amplicon_names.append(row['pLeft_ID'])
+        for i, row in amplicon_df.iterrows():
+            amplicon_positions.append((row['pLeft_coord'], row['pRight_coord']))
+            amplicon_names.append(row['pLeft_ID'])
         
         
     # getting reference amplicon ranges
@@ -226,7 +213,6 @@ def plotting(priority, read_size, accepted_primers, gff, reference_design, outpu
             if reference_amplicon_df.shape[0] == 0:
                 flag = 0
                 # continue
-                # print('! Empty amplicon design file')
             else:
                 flag = 1
                 ref_pos = [item for tup in reference_amplicon_positions for item in tup]
@@ -245,10 +231,10 @@ def plotting(priority, read_size, accepted_primers, gff, reference_design, outpu
 
         # Set y-axis label
         ax1.set_ylabel('SNP Frequency')
-        if 'amp_pos' in locals() and 'ref_pos' not in locals():
+        if amp_pos and not ref_pos:
             xmin = min(min(df['Genomic_Position'])-10, min(amp_pos)-10)
             xmax = max(max(df['Genomic_Position'])+10, max(amp_pos)+10)
-        elif 'ref_pos' in locals() and 'amp_pos' not in locals():
+        elif ref_pos and not amp_pos:
             xmin = min(min(df['Genomic_Position'])-10, min(ref_pos)-10)
             xmax = max(max(df['Genomic_Position'])+10, max(ref_pos)+10)
         else:

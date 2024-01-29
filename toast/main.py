@@ -711,7 +711,7 @@ def cli():
     # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input=parser_sub.add_argument_group("input options")
     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default=f'{db}/variants.csv')
-    input.add_argument('-sc_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = f'{db}/spacers.bed')
+    # input.add_argument('-sc_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = f'{db}/spacers.bed')
     input.add_argument('-ref','--reference_genome', type = str, help = 'Reference fasta file (default: MTB-h37rv genome)', default=f'{db}/MTB-h37rv_asm19595v2-eg18.fa')
     
     #design

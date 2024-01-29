@@ -40,9 +40,9 @@ Get to the code directory
 3. Check amplicon design using coverage plot (*plotting* function)
     - Example: 
     ```
-    python main.py plotting -ap /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output/Amplicon_design_output/Primer_design-accepted_primers-42-400.csv -rp ../db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
+    python main.py plotting -ap /mnt/storage10/lwang/Projects/TOAST/toast/Amplicon_design_output/Primer_design-accepted_primers-23-400.csv -rp /mnt/storage10/lwang/Projects/TOAST/toast/db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
     
-    toast plotting -ap /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output/Amplicon_design_output/Primer_design-accepted_primers-42-400.csv -rp ../db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
+    toast plotting -ap /mnt/storage10/lwang/Projects/TOAST/toast/Amplicon_design_output/Primer_design-accepted_primers-23-400.csv -rp /mnt/storage10/lwang/Projects/TOAST/toast/db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
     ``` 
 
 
