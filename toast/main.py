@@ -616,6 +616,12 @@ def cli():
         Option for graphical output.
         Outputs:
         Files in specified output folder path.
+        **Genes involved in the default SNP database: 
+            rpoB, rpsL, katG, embB, fabG1, ethR, pncA, tlyA,
+            gyrA, rrs, mmpR5, gid, eis, ethA, folC, rpoC,
+            embA, alr, gyrB, inhA, ahpC, ald, thyX, thyA,
+            rplC, ddn, embC, fbiA, kasA, rrl, embR, panD,
+            ribD, rpsA, fgd1 **
         
     Amplicon Number Estimates Function - (amplicon_no)
         Purpose: To estimate the number of amplicons for SNP coverage in TB genomic studies.
@@ -668,7 +674,7 @@ def cli():
     """)
     
     parser = argparse.ArgumentParser(prog='Amplicon designer for TB', 
-                                    description='Amplicon design, list of specific genes that can be priotised: rpoB,katG,embB,pncA,rpsL,rrs,ethA,fabG1,gyrA,gid,inhA,ethR,rpoC,ahpC,gyrB,folC,tlyA,alr,embA,thyA,eis',
+                                    description='Amplicon design, list of specific genes that can be priotised: rpoB,katG,embB,pncA,rpsL,rrs,ethA,fabG1,gyrA,gid,inhA,ethR,rpoC,ahpC,gyrB,folC,tlyA,alr,embA,thyA,eis (given the default SNP database)',
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
     subparsers = parser.add_subparsers(dest="command", help="Task to perform")

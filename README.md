@@ -46,10 +46,7 @@ Get to the code directory
     ``` 
 
 
-
-
-
-## Primer3 Configuration Parameters
+## Primer3 Configuration Parameters (default file: db/default_primer_design_setting.txt)
 
 - **PRIMER_NUM_RETURN**: Number of primer pairs to return.
 - **PRIMER_PICK_INTERNAL_OLIGO**: Flag to pick internal oligos (0 for no, 1 for yes).
@@ -70,3 +67,8 @@ Get to the code directory
 - **PRIMER_PAIR_MAX_COMPL_ANY**: Maximum overall complementarity score between primer pairs.
 - **PRIMER_PAIR_MAX_COMPL_END**: Maximum 3' end complementarity score between primer pairs.
 - **PRIMER_PRODUCT_SIZE_RANGE**: Range of acceptable primer product sizes (e.g., "100-300").
+
+## Example format of the user defined files can be found in '''user_defined_files/''' folder:
+
+  - Configuration Parameters file: '''default_primer_design_setting.txt'''
+  - User input primer file: '''user_input_primer.csv'''
