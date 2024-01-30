@@ -71,7 +71,7 @@ def genome_size(fasta_file):
     return total_length
 #%%
 def complement_sequence(dna_sequence):
-    trans = str.maketrans('ATCG', 'TAGC')
+    trans = str.maketrans('ATCGRYSWKMNBVDH-.', 'TAGCYRWSMKNVBHD-.')
     return dna_sequence.upper().translate(trans)
 
 # print(complement_sequence("ATGCGTA"))
@@ -81,7 +81,7 @@ def complement_sequence(dna_sequence):
 # print(complement_sequence)  # Output: TACGCAT
 #%%
 def reverse_complement_sequence(seq):
-    complement = {"A": "T", "T": "A", "C": "G", "G": "C"}
+    complement = {"A": "T", "T": "A", "C": "G", "G": "C", 'R': 'Y', 'Y': 'R', 'S': 'S', 'W': 'W', 'K': 'M', 'M': 'K', 'N': 'N', 'B': 'V', 'V': 'B', 'D': 'H', 'H': 'D', '-':'-','.': '.'}
     reverse_seq = seq[::-1]
     return "".join(complement[base] for base in reverse_seq)
 

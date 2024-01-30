@@ -29,7 +29,9 @@ Get to the code directory
     ```
     python main.py design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40 
     
-    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40
+    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40 
+    
+    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 25
 
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpsL -nn 0 
 
