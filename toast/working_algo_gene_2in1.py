@@ -113,6 +113,7 @@ def rolling_sum(df, weight, window_size, genomic_pos):
         start = x
         in_range = [i for i in pos if i <= start+window_size]
         end = min(in_range, key=lambda x:abs(x-(start+window_size)))
+        # end = x + window_size
         freq_sum = df[(df['genome_pos']>=start) & (df['genome_pos']<=end)][str(weight)].sum()
         rolling_sum.append(freq_sum)
     return rolling_sum
@@ -243,6 +244,9 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         # end = min(in_range, key=lambda x:abs(x-(start+window_size))) # find the closest value to the end of the window
         # print(start_r)
         end_r = start_r+window_size
+        start_r = start_r - 50
+        end_r = end_r + 50
+        print(start_r, end_r)
         if end_r > genome_size(ref_genome):
             end_r = genome_size(ref_genome)-200
         designed_ranges.append([start_r, end_r])
@@ -258,7 +262,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
             start_p, end_p = accepted_primers.iloc[accepted_primers.shape[0]-1][['pLeft_coord','pRight_coord']].values
         else:
             run= max(0,run-1)
-            print('No suitable primers found')
+            print('! No suitable primers found')
             break
         # print('---WindowMin', min(weight_window_sum))
         # print('---WindowMean', np.mean(weight_window_sum))
@@ -277,12 +281,16 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
 # full_data_cp[(full_data_cp['genome_pos']>=1673440) & (full_data_cp['genome_pos']<=1674487)]
 # full_data_cp[(full_data_cp['genome_pos']>=1673373) & (full_data_cp['genome_pos']<=1674373)]
         if [start_p, end_p] in covered_ranges:
-            if pos[np.argmax(weight_window_sum)] == start_r:
+            # if pos[np.argmax(weight_window_sum)] == start_r-50:
+                # print('!this happens')
                 # c = full_data_cp[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r)].shape[0]
                 # c = full_data_cp.shape[0]
                 
                 # full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = full_data_cp['weight'].min()/10/c # set the weight of the covered positions smaller
-                full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = 0 # set the weight of the covered positions smaller
+            full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = 0 # set the weight of the covered positions smaller
+            # else:
+                # print('!this happens111')
+                # full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = 0 # set the weight of the covered positions smaller
             # this is when problem comes, there is a difference in range coverage according to the design by weighted sum, however the actual range obtained from designed primers are dont cover the same range, hence the sae primers are repeatedly designed 
             print('Already covered, consider reducing amplicon number...Finding alternative sequences...')
             reduce_amplicon += 1
@@ -302,11 +310,12 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         # print(weight_window_sum)
         weight_window_sum = rolling_sum(full_data_cp, 'weight', window_size, full_data_cp['genome_pos'].tolist())
     if reduce_amplicon > 0:
-        print('====================')
-        print(f'Consider reducing number of amplicons by: {reduce_amplicon}')
-        print('====================')
-        end = time.time()
-        print(f'Programme ran for {round((end - start)/60,1)} min')
+        pass
+    print('====================')
+        # print(f'Consider reducing number of amplicons by: {reduce_amplicon}')
+        # print('====================')
+    end = time.time()
+    print(f'Programme ran for {round((end - start)/60,1)} min')
 
     # return covered_positions, covered_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
     return covered_positions, designed_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
