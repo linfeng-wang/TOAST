@@ -87,7 +87,8 @@ def user_defined(primer_input_file: str, refgenome: str, full_data: pd.DataFrame
     full_data.loc[(full_data['genome_pos'] >= locl) & (full_data['genome_pos'] <= locr), 'weight'] = 0
 
     primer_pool = pRight_Sequences + pLeft_Sequences
-    covered_ranges = [[locl, locr]]
+    # covered_ranges = [[locl, locr]]
+    covered_ranges = []
 
     return df, primer_pool, full_data, covered_ranges
     # Create an empty DataFrame with these columns
@@ -300,10 +301,11 @@ def main(args):
     if 'Amplicon_type' in accepted_primers.columns:   
         cleaned_list = accepted_primers['Amplicon_type'].tolist()[:user_defined_no]
         primer_label = cleaned_list + primer_label
+
     accepted_primers['Amplicon_type'] = primer_label
     no_primer_ = ['-']*user_defined_no + no_primer_
     accepted_primers['Redesign'] = no_primer_
-    accepted_primers['Designed_ranges'] = covered_ranges
+    accepted_primers['Designed_ranges'] = ['-']*user_defined_no + covered_ranges
     accepted_primers.reset_index(inplace = True)
     
     #accepted_primers - change primer to iupac

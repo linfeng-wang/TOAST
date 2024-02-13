@@ -33,7 +33,8 @@ Get to the code directory
     
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 25
 
-    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/output -a 400 -nn 40 
+    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/output -a 1000 -nn 4 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv
+    ```
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/output -a 1000 -nn 26
 
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpsL -nn 0 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv

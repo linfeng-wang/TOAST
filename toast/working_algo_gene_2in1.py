@@ -315,7 +315,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         # print(f'Consider reducing number of amplicons by: {reduce_amplicon}')
         # print('====================')
     end = time.time()
-    print(f'Programme ran for {round((end - start)/60,1)} min')
+    print(f'>> Programme ran for {round((end - start)/60,1)} min')
 
     # return covered_positions, covered_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
     return covered_positions, designed_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
