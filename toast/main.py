@@ -361,11 +361,13 @@ def main(args):
     
     Amplicon_id  = []
     # Extract the part after '-' from 'pLeft_ID' for use in both new columns
-    split_part = accepted_primers['pLeft_ID'].str.split('-').str[1]
+    split_part = accepted_primers['pLeft_ID'].str.split('-').str[1].replace('UserLeft', 'UserDefined', regex=True)
+
     # Generate index-based part ('A1', 'A2', ...) and add 1 because Python uses 0-based indexing
     index_part = 'A' + (accepted_primers.index + 1).astype(str)
     # Combine the parts to form 'designed_range_name' and 'amplicone_name'
     accepted_primers.insert(0, 'Amplicon_ID', index_part + '-' + split_part)
+    
 
     # accepted_primers['pLeft_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pLeft_ID'], x['Amplicon_type'], 'L'), axis=1)
     # accepted_primers['pRight_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pRight_ID'], x['Amplicon_type'], 'R'), axis=1)
@@ -416,17 +418,18 @@ def main(args):
         matching_amplicons = accepted_primers[(accepted_primers['pLeft_coord'] <= pos) & 
                                             (accepted_primers['pRight_coord'] >= pos)]['Amplicon_ID']
         return ','.join(matching_amplicons) if not matching_amplicons.empty else '-'
+    unique_rows = full_data.drop_duplicates(subset=['gene', 'change'])
 
     # Apply the function to each row in full_data to generate a Series of amplicon IDs
-    amplicon_id_series = full_data.apply(find_amplicon_ids, axis=1)
+    amplicon_id_series = unique_rows.apply(find_amplicon_ids, axis=1)
 
     # Create 'snp' Series directly using vectorized operations
-    snp_series = full_data['gene'] + '-' + full_data['change']
+    snp_series = unique_rows['gene'] + '-' + unique_rows['change']
 
     # Construct the final DataFrame
     primer_inclusion = pd.DataFrame({
         'SNP': snp_series,
-        'Genomic_pos': full_data['genome_pos'],
+        'Genomic_pos': unique_rows['genome_pos'],
         'Amplicon_ID': amplicon_id_series
     })
 
