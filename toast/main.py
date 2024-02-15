@@ -132,7 +132,7 @@ def main(args):
         print(f"Spoligo Sequencing File: {args.spoligo_sequencing_file}")
     print(f"Output Folder Path: {args.output_folder_path}")
     
-    print("===========================================")
+    print("=================================================")
 
     gene_names = [
         "rpoB",
@@ -346,28 +346,43 @@ def main(args):
         sp = '-sp'
     else:
         sp = ''
+        
+    # # Apply modifications
+    # for index, row in accepted_primers.iterrows():
+    #     if row['Amplicon_type'] == 'User-defined':
+    #         continue
+    #     else:            
+    #         accepted_primers.at[index, 'pLeft_ID'] = wa.modify_primer_name(row['pLeft_ID'], row['Amplicon_type'], 'L')
+    # for index, row in accepted_primers.iterrows():
+    #     if row['Amplicon_type'] == 'User-defined':
+    #         continue
+    #     else:
+    #         accepted_primers.at[index, 'pRight_ID'] = wa.modify_primer_name(row['pRight_ID'], row['Amplicon_type'], 'R')    
+    # Amplicon_id  = []
+    # # Extract the part after '-' from 'pLeft_ID' for use in both new columns
+    # split_part = accepted_primers['pLeft_ID'].str.split('-').str[:-1]
+    # split_part = split_part.str.join('-').replace('UserLeft', 'UserAmplicon', regex=True)
 
-    # Apply modifications
-    for index, row in accepted_primers.iterrows():
-        if row['Amplicon_type'] == 'User-defined':
-            continue
-        else:            
-            accepted_primers.at[index, 'pLeft_ID'] = wa.modify_primer_name(row['pLeft_ID'], row['Amplicon_type'], 'L')
-    for index, row in accepted_primers.iterrows():
-        if row['Amplicon_type'] == 'User-defined':
-            continue
+    # # Generate index-based part ('A1', 'A2', ...) and add 1 because Python uses 0-based indexing
+    # index_part = 'A' + (accepted_primers.index + 1).astype(str)
+    # # Combine the parts to form 'designed_range_name' and 'amplicone_name'
+    # accepted_primers.insert(1, 'Amplicon_ID', index_part + '-' + split_part)
+    
+    amplicone_name_list = []
+    for i, x in accepted_primers.iterrows():
+        # designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}
+        if 'User' not in x['pLeft_ID']:
+            # designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+            amplicone_name = f"A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
         else:
-            accepted_primers.at[index, 'pRight_ID'] = wa.modify_primer_name(row['pRight_ID'], row['Amplicon_type'], 'R')
-    
-    Amplicon_id  = []
-    # Extract the part after '-' from 'pLeft_ID' for use in both new columns
-    split_part = accepted_primers['pLeft_ID'].str.split('-').str[1].replace('UserLeft', 'UserDefined', regex=True)
+            # amplicone_name = f"A-{x['pLeft_ID'].split('-')[0]}-{x['pLeft_ID'].split('-')[1]}"
+            amplicone_name = f"A-{x['pLeft_ID'].split('-')[0]}-UserAmplicon"
+            
+            # amplicone_name = amplicone_name.replace('UserLeft', 'UserAmplicon')
+            
+        amplicone_name_list.append(amplicone_name)
 
-    # Generate index-based part ('A1', 'A2', ...) and add 1 because Python uses 0-based indexing
-    index_part = 'A' + (accepted_primers.index + 1).astype(str)
-    # Combine the parts to form 'designed_range_name' and 'amplicone_name'
-    accepted_primers.insert(1, 'Amplicon_ID', index_part + '-' + split_part)
-    
+    accepted_primers.insert(1, 'Amplicon_ID', amplicone_name_list)
 
     # accepted_primers['pLeft_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pLeft_ID'], x['Amplicon_type'], 'L'), axis=1)
     # accepted_primers['pRight_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pRight_ID'], x['Amplicon_type'], 'R'), axis=1)
@@ -482,21 +497,46 @@ def main(args):
     
     if accepted_primers.shape[0] == 0:
         raise Exception('No primers designed')
+
+
+    # for i, x in accepted_primers.iterrows():
+    #     # designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}
+    #     if 'User' not in x['pLeft_ID']:
+    #         # designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+    #         amplicone_name = f"A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+    #         designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}"
+    #     else:
+    #         amplicone_name = f"A-{x['pLeft_ID'].split('-')[0]}-{x['pLeft_ID'].split('-')[1]}"
+    #         amplicone_name = amplicone_name.replace('UserLeft', 'UserAmplicon')
+
     
     out_bed = {}
-    colors = ['0,0,255', '0,255,0', '255,0,0', '128,0,0']*accepted_primers.shape[0]
+    colors = ['0,0,255', '0,255,0', '255,0,0', '128,0,0']*(accepted_primers.shape[0]-user_defined_no) # defined colors for designed amplicons
+    colors = ['0,255,0',  '255,0,0', '128,0,0']*user_defined_no+colors # adding coloration for designed amplicons after user defined amplions
+    # for i, x in accepted_primers.iterrows():
+    #     designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}"
+    #     amplicone_name = f"A{i+1}-{x['pLeft_ID'].split('-')[1]}"
+    #     amplicone_name = amplicone_name.replace('UserLeft', 'UserAmplicon')
+    #     if 'User' not in designed_range_name:
+    #         designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+    #         amplicone_name = f"A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+            
     for i, x in accepted_primers.iterrows():
-        designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}"
-        amplicone_name = f"A{i+1}-{x['pLeft_ID'].split('-')[1]}"
-        amplicone_name = amplicone_name.replace('UserLeft', 'UserDefined')
-        if 'User' not in designed_range_name:
-            designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+        # designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}
+        if 'User' not in x['pLeft_ID']:
+            # designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
             amplicone_name = f"A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
-        out_bed[designed_range_name] = x['Designed_ranges']
+            designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+            out_bed[designed_range_name] = x['Designed_ranges']
+        else:
+            # amplicone_name = f"A-{x['pLeft_ID'].split('-')[0]}-{x['pLeft_ID'].split('-')[1]}"
+            amplicone_name = f"A-{x['pLeft_ID'].split('-')[0]}-UserAmplicon"
+            # amplicone_name = amplicone_name.replace('UserLeft', 'UserAmplicon')
         # out_bed[amplicone_name] = [x['pLeft_coord'], x['pRight_coord']+x['pRight_length']]
         out_bed[amplicone_name] = [x['pLeft_coord'], x['pRight_coord']]
         out_bed[x['pLeft_ID']] = [x['pLeft_coord'], x['pLeft_coord']+x['pLeft_length']]
         out_bed[x['pRight_ID']] = [x['pRight_coord']-x['pRight_length'], x['pRight_coord']]
+
     out = pd.DataFrame(out_bed).T
     out[2] = out.index
     out.insert(loc = 0,
