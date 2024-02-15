@@ -366,7 +366,7 @@ def main(args):
     # Generate index-based part ('A1', 'A2', ...) and add 1 because Python uses 0-based indexing
     index_part = 'A' + (accepted_primers.index + 1).astype(str)
     # Combine the parts to form 'designed_range_name' and 'amplicone_name'
-    accepted_primers.insert(0, 'Amplicon_ID', index_part + '-' + split_part)
+    accepted_primers.insert(1, 'Amplicon_ID', index_part + '-' + split_part)
     
 
     # accepted_primers['pLeft_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pLeft_ID'], x['Amplicon_type'], 'L'), axis=1)
