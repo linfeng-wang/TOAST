@@ -27,6 +27,7 @@ import pandas as pd
 from toast import plotting1 as p
 # from icecream import ic
 from tabulate import tabulate
+import re
 
 def user_defined(primer_input_file: str, refgenome: str, full_data: pd.DataFrame):
     primer_input = pd.read_csv(primer_input_file)
@@ -118,7 +119,8 @@ def main(args):
     print(f"Reference Genome: {args.reference_genome}")
     print(f"User defined primers: {args.user_defined_primers}")
     if args.padding_size == None:
-        print(f"Padding_size: {args.amplicon_size/4}")
+        print(f"Padding_size: {args.amplicon_size/6}")
+        # print(f"Padding_size: {args.amplicon_size/8}")
     else:
         print(f"Padding_size: {args.padding_size}")
     print(f"Specific Amplicon Number: {args.specific_amplicon_no}")
@@ -170,7 +172,8 @@ def main(args):
 
     # paddding size
     if args.padding_size == None:    
-        padding = int(read_size/4)
+        padding = int(read_size/6)
+        # padding = 50
     else:
         padding = args.padding_size
 
@@ -348,16 +351,17 @@ def main(args):
         sp = ''
         
     # # Apply modifications
-    # for index, row in accepted_primers.iterrows():
-    #     if row['Amplicon_type'] == 'User-defined':
-    #         continue
-    #     else:            
-    #         accepted_primers.at[index, 'pLeft_ID'] = wa.modify_primer_name(row['pLeft_ID'], row['Amplicon_type'], 'L')
-    # for index, row in accepted_primers.iterrows():
-    #     if row['Amplicon_type'] == 'User-defined':
-    #         continue
-    #     else:
-    #         accepted_primers.at[index, 'pRight_ID'] = wa.modify_primer_name(row['pRight_ID'], row['Amplicon_type'], 'R')    
+    for index, row in accepted_primers.iterrows():
+        if row['Amplicon_type'] == 'User-defined':
+            continue
+        else:            
+            accepted_primers.at[index, 'pLeft_ID'] = wa.modify_primer_name(row['pLeft_ID'], row['Amplicon_type'], 'L')
+    for index, row in accepted_primers.iterrows():
+        if row['Amplicon_type'] == 'User-defined':
+            continue
+        else:
+            accepted_primers.at[index, 'pRight_ID'] = wa.modify_primer_name(row['pRight_ID'], row['Amplicon_type'], 'R')    
+            
     # Amplicon_id  = []
     # # Extract the part after '-' from 'pLeft_ID' for use in both new columns
     # split_part = accepted_primers['pLeft_ID'].str.split('-').str[:-1]
@@ -373,7 +377,10 @@ def main(args):
         # designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}
         if 'User' not in x['pLeft_ID']:
             # designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
-            amplicone_name = f"A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+            match = re.search("P(\d+)", x['pLeft_ID'])
+            number_after_p = int(match.group(1)) if match else None
+
+            amplicone_name = f"A{number_after_p}-{x['pLeft_ID'].split('-')[1]}"
         else:
             # amplicone_name = f"A-{x['pLeft_ID'].split('-')[0]}-{x['pLeft_ID'].split('-')[1]}"
             amplicone_name = f"A-{x['pLeft_ID'].split('-')[0]}-UserAmplicon"
@@ -391,6 +398,7 @@ def main(args):
     os.makedirs(op, exist_ok=True) #output path
     accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
 
+
     # primer_pos = accepted_primers[['pLeft_coord','pRight_coord']].values
     # columns = ['pLeft_ID', 'pRight_ID', 'pLeft_coord', 'pRight_coord', 'SNP_inclusion']
 
@@ -400,6 +408,7 @@ def main(args):
     #     data = full_data[(full_data['genome_pos']>= row['pLeft_coord']) & (full_data['genome_pos']<= row['pRight_coord'])]    
     #     info = row[['pLeft_ID', 'pRight_ID', 'pLeft_coord', 'pRight_coord']]
     #     SNP = data['gene'].str.cat(data['change'], sep='-').unique()
+        
     #     info['SNP_inclusion'] = ','.join(SNP)
     #     primer_inclusion.loc[len(primer_inclusion)] = info.tolist()
     
@@ -427,6 +436,8 @@ def main(args):
     # primer_inclusion['Genomic_pos'] = pos_list
     # primer_inclusion['Amplicon_ID'] = amplicon_id_list
 
+
+
     # Function to find matching amplicon IDs for each row in full_data
     def find_amplicon_ids(row):
         pos = row['genome_pos']
@@ -450,6 +461,11 @@ def main(args):
 
 
     primer_inclusion.to_csv(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv',index=False)
+
+    
+    df1 = pd.DataFrame(primer_inclusion['Amplicon_ID'].value_counts())
+
+    df1.to_csv(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv',index=False)
 
 
     if specific_gene_amplicon>0 or non_specific_amplicon>0:
@@ -512,6 +528,9 @@ def main(args):
     
     out_bed = {}
     colors = ['0,0,255', '0,255,0', '255,0,0', '128,0,0']*(accepted_primers.shape[0]-user_defined_no) # defined colors for designed amplicons
+    # print('user_defined_no:', user_defined_no)
+    # print('accepted_primers.shape[0]:', accepted_primers.shape[0])
+    # print(accepted_primers)
     colors = ['0,255,0',  '255,0,0', '128,0,0']*user_defined_no+colors # adding coloration for designed amplicons after user defined amplions
     # for i, x in accepted_primers.iterrows():
     #     designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}"
@@ -524,9 +543,11 @@ def main(args):
     for i, x in accepted_primers.iterrows():
         # designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}
         if 'User' not in x['pLeft_ID']:
+            match = re.search("P(\d+)", x['pLeft_ID'])
+            number_after_p = int(match.group(1)) if match else None
             # designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
-            amplicone_name = f"A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
-            designed_range_name = f"Designed-A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
+            amplicone_name = f"A{number_after_p}-{x['pLeft_ID'].split('-')[1]}"
+            designed_range_name = f"Designed-A{number_after_p}-{x['pLeft_ID'].split('-')[1]}"
             out_bed[designed_range_name] = x['Designed_ranges']
         else:
             # amplicone_name = f"A-{x['pLeft_ID'].split('-')[0]}-{x['pLeft_ID'].split('-')[1]}"
@@ -547,6 +568,8 @@ def main(args):
     out[5] = '.' # strand
     out[6] = out[0] # thickStart
     out[7] = out[1] #ThickEnd
+    # print(out)
+    # print(colors)
     out[8] = colors # itemRgb
     out.columns = ['col0', 'col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
     condition = ~((out['col3'].str.contains('Designed')) & (out['col3'].str.contains('User')))
@@ -567,6 +590,7 @@ def main(args):
     print(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv')
     print(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}.csv')
     print(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed')
+    print(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv')
     return 0
 
 def main_amplicon_no(args):

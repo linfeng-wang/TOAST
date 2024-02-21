@@ -127,7 +127,7 @@ def genome_size(fasta_file):
     return total_length
 
 def extraction_prep(x, ref_size, ref_genome, padding=150):
-    padding = int(padding/2)
+    # padding = int(padding/2)
     low_b = x[0]
     high_b = x[1]
     if low_b <= padding:
@@ -201,7 +201,6 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
     # for run in tqdm(range(0,read_number)):
     while run < read_number:
         print(f'**Amplicon #{run+1}')
-        print(f'Designing primers...for {read_size}bps Amplicons...with {padding}bps padding')
 
         if graphic_output == True:
             op = f'{output_path}/Running_graphs'
@@ -244,11 +243,14 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         # end = min(in_range, key=lambda x:abs(x-(start+window_size))) # find the closest value to the end of the window
         # print(start_r)
         end_r = start_r+window_size
-        start_r = start_r - 50
-        end_r = end_r + 50
-        print(start_r, end_r)
+        start_r = start_r
+        end_r = end_r
+                
+        print(f'Designing primers...for {read_size}bps Amplicons...with {padding}bps padding for genomic region {start_r}-{end_r}')
+
+        #print()
         if end_r > genome_size(ref_genome):
-            end_r = genome_size(ref_genome)-200
+            end_r = genome_size(ref_genome)-padding
         designed_ranges.append([start_r, end_r])
  
         # ideal_range.append([start_r, end_r])
@@ -271,7 +273,9 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         # c = full_data_cp[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p)].shape[0]
         # c = full_data_cp.shape[0]
         # full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = full_data_cp['weight'].min()/10/c  # set the weight of the covered positions smaller
-        full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = 0 # set the weight of the covered positions smaller
+        full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = full_data_cp['weight'].min()/10 # set the weight of the covered positions smaller
+        full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = -0.05 # set the weight of the covered positions smaller
+        
         # print(start_p, end_p)
         # full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight']/100 # set the weight of the covered positions smaller
         # print(full_data_cp[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p)]['weight'])
@@ -287,7 +291,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
                 # c = full_data_cp.shape[0]
                 
                 # full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = full_data_cp['weight'].min()/10/c # set the weight of the covered positions smaller
-            full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = 0 # set the weight of the covered positions smaller
+            full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = 0.0 # set the weight of the covered positions smaller
             # else:
                 # print('!this happens111')
                 # full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = 0 # set the weight of the covered positions smaller
@@ -304,7 +308,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
 
             covered_positions[f'Amplicon_{run+1}'] = {'Range':{'Start': start_p, 'End': end_p}, 'Markers':full_data_cp[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p)][['genome_pos','gene','sublin','drtype','drugs','weight']].sort_values(by=['weight']).to_dict('records')}# verbose version of output
             print('***')
-
+            
             # print(full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p)]['weight'].values)
             # print('==============')
         # print(weight_window_sum)

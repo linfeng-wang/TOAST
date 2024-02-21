@@ -309,6 +309,9 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
     # print([len(sequence)-50,len(sequence)+50])
     # print(len(sequence))
     # size_range = f'{int(len(sequence)-padding*1.3)}-{int(len(sequence)-padding*1)}'
+    # print('---padding:',padding)
+    # print('---sequence:',len(sequence))
+    # padding = int(padding/2)
     size_range = f'{len(sequence)-padding*2}-{len(sequence)}'
     with open(global_args, 'r') as file:
         global_args_dict = json.load(file)
@@ -326,17 +329,19 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
                 'SEQUENCE_ID': 'Amplicon',
                 'SEQUENCE_TEMPLATE': sequence,
                 # 'SEQUENCE_INCLUDED_REGION': [padding-20,len(sequence)-padding+20],
-                'SEQUENCE_INCLUDED_REGION': [padding,len(sequence)-padding],
+                # 'SEQUENCE_INCLUDED_REGION': [padding,len(sequence)-(padding*2)],
                 # 'SEQUENCE_PRIMER_PAIR_OK_REGION_LIST': ok_region_list
-                'SEQUENCE_PRIMER_PAIR_OK_REGION_LIST': f'{ok_region_list[0]},{ok_region_list[1]},{ok_region_list[2]},{ok_region_list[3]}'
+                'SEQUENCE_PRIMER_PAIR_OK_REGION_LIST': f'{ok_region_list[0]},{ok_region_list[1]},{ok_region_list[2]},{ok_region_list[3]}',
 
                 # 'SEQUENCE_INCLUDED_REGION': [(0,len(sequence)),],
                 # 'SEQUENCE_INCLUDED_REGION': [(0,padding),(len(sequence)-padding,len(sequence))],
                 # 'SEQUENCE_EXCLUDED_REGION':[(padding,len(sequence)-padding)]
+                'SEQUENCE_TARGET': [padding,len(sequence)-padding*2]
             },
             global_args=global_args_dict)
     except:
         print('!!!Primer extraction error')
+        
     # print(results)
     
     pLeft_ID = []
@@ -357,7 +362,11 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
 
     Penalty = []
     Product_size = []
-
+    if len(results['PRIMER_PAIR']) == 0:
+        print('!!!No primer designed')
+        print('!!!Try increasing the padding size')
+        return 0
+    
     for i, primer_num in enumerate(results['PRIMER_PAIR']):
         Product_size.append(primer_num['PRODUCT_SIZE'])
         Penalty.append(primer_num['PENALTY'])
