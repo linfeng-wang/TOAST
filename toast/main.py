@@ -463,7 +463,8 @@ def main(args):
     primer_inclusion.to_csv(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv',index=False)
 
     
-    df1 = pd.DataFrame(primer_inclusion['Amplicon_ID'].value_counts())
+    df1 = primer_inclusion['Amplicon_ID'].value_counts().to_frame()
+    df1.columns = ["Amplicon_ID", "Num_SNP_covered"]
 
     df1.to_csv(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv',index=False)
 
