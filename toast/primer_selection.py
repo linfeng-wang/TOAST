@@ -369,7 +369,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
     
     for i, primer_num in enumerate(results['PRIMER_PAIR']):
         Product_size.append(primer_num['PRODUCT_SIZE'])
-        Penalty.append(primer_num['PENALTY'])
+        Penalty.append(np.round(primer_num['PENALTY'],2))
     for i, primer_num in enumerate(results['PRIMER_LEFT']):
         pLeft_ID.append(f'P{seq}-L{i}')
         # pLeft_coord.append(primer_num['COORDS'][0]+low_b)
@@ -377,7 +377,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
         pLeft_coord.append(find_sequence_location(primer_num['SEQUENCE'], ref_genome)[0])
         
         pLeft_length.append(primer_num['COORDS'][1])
-        pLeft_Tm.append(primer_num['TM'])
+        pLeft_Tm.append(np.round(primer_num['TM'],2))
         pLeft_GC.append(primer_num['GC_PERCENT'])
         pLeft_Sequences.append(primer_num['SEQUENCE'])
         pLeft_EndStability.append(primer_num['END_STABILITY'])
@@ -387,7 +387,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
         # pRight_coord.append(primer_num['COORDS'][0]+low_b)
         pRight_coord.append(find_sequence_location(reverse_complement_sequence(primer_num['SEQUENCE']),ref_genome)[1])
         pRight_length.append(primer_num['COORDS'][1])
-        pRight_Tm.append(primer_num['TM'])
+        pRight_Tm.append(np.round(primer_num['TM'],2))
         pRight_GC.append(primer_num['GC_PERCENT'])
         # pRight_Sequences.append(reverse_complement_sequence(primer_num['SEQUENCE']))
         pRight_Sequences.append(primer_num['SEQUENCE'])

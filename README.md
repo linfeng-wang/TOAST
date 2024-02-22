@@ -74,3 +74,13 @@ Get to the code directory
 
   - Configuration Parameters file: '''default_primer_design_setting.txt'''
   - User input primer file: '''user_input_primer.csv'''
+
+
+
+
+
+
+
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 20
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 30
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 40

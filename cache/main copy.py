@@ -95,53 +95,6 @@ def user_defined(primer_input_file: str, refgenome: str, full_data: pd.DataFrame
     return df, primer_pool, full_data, covered_ranges
     # Create an empty DataFrame with these columns
 
-def quick_estimate_amplicons(df, amplicon_length):
-    """
-    Estimates the number of amplicons needed to cover given genomic positions.
-    
-    Parameters:
-    - df: DataFrame with a 'genomic_pos' column representing genomic positions.
-    - amplicon_length: The length of genomic positions that a single amplicon can cover.
-    
-    Returns:
-    - The estimated number of amplicons needed.
-    """
-    # Ensure the genomic positions are sorted
-    sorted_positions = df['genome_pos'].sort_values().unique()
-    
-    # Initialize counters
-    amplicon_count = 0
-    current_end = -1  # Initialize to a position before any possible genomic position
-    
-    # Iterate through genomic positions
-    for pos in sorted_positions:
-        # Check if current position is outside the range of the current amplicon
-        if pos > current_end:
-            # Start a new amplicon
-            amplicon_count += 1
-            current_end = pos + amplicon_length - 1  # Determine the new amplicon's end position
-            
-    return amplicon_count
-
-def extract_gff3(gff3_file_path):
-    # Read the GFF3 file
-    gff3_columns = ['seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes']
-    gff3_df = pd.read_csv(gff3_file_path, sep='\t', comment='#', names=gff3_columns)
-
-    # Filter to keep only gene entries and explicitly create a copy
-    genes_df = gff3_df[gff3_df['type'] == 'gene'].copy()
-
-    # Extract gene names from the attributes column
-    genes_df['gene_id'] = genes_df['attributes'].apply(lambda x: x.split(';')[0].split('=')[1].split(':')[1])
-    genes_df['gene_name'] = genes_df['attributes'].apply(lambda x: x.split(';')[1].split('=')[1])
-
-    # Create a new DataFrame with the required information
-    genes_info_df = genes_df[['gene_id', 'gene_name', 'seqid', 'start', 'end']]
-
-    # Rename columns for clarity
-    genes_info_df.columns = ['gene_id', 'gene_name', 'chr', 'start', 'end']
-    return genes_info_df
-
 def main(args):
     print('>>>Designing Amplicons')
     #test run: python main.py design -s variants.csv -ref MTB-h37rv_asm19595v2-eg18.fa -op ../test -a 400 -p 200 -sn 0 -sg rpoB,katG,embB,pncA,rpsL,rrs,ethA,fabG1,gyrA,gid,inhA,ethR,rpoC,ahpC,gyrB,folC,tlyA,alr,embA,thyA,eis -nn 30 -g -sp -sp_f spacers.bed 
@@ -164,16 +117,14 @@ def main(args):
     print(f"Amplicon Size: {args.amplicon_size}")
     print(f"SNP Priority: {args.snp_priority}")
     print(f"Reference Genome: {args.reference_genome}")
-    print(f"gff file: {args.gff3_file}")
     print(f"User defined primers: {args.user_defined_primers}")
     if args.padding_size == None:
         print(f"Padding_size: {args.amplicon_size/6}")
         # print(f"Padding_size: {args.amplicon_size/8}")
     else:
         print(f"Padding_size: {args.padding_size}")
-    if args.specific_amplicon_no != None:
-        print(f"Specific Amplicon Number: {args.specific_amplicon_no}")
-    if args.specific_amplicon_gene != '':
+    print(f"Specific Amplicon Number: {args.specific_amplicon_no}")
+    if args.specific_amplicon_no > 0:
         print(f"Specific Amplicon Gene: {args.specific_amplicon_gene}")
     print(f"Non-specific Amplicon Number: {args.non_specific_amplicon_no}")
     print(f'Amplicon search setting: {args.global_args}')
@@ -231,7 +182,10 @@ def main(args):
     #specific_genes
     if args.specific_amplicon_gene:
         specific_gene = args.specific_amplicon_gene.split(',')
-        specific_gene = [item.strip().lower() for item in specific_gene]
+        specific_gene = [item.strip() for item in specific_gene]
+        for x in specific_gene:
+            if x not in full_data['gene'].unique():
+                raise Exception(f'Error: {x} is not a valid gene name')
     else:
         specific_gene = []
 
@@ -260,11 +214,11 @@ def main(args):
     # specific_gene_data = full_data[full_data['gene'].isin(specific_gene)]
     # non_specific_gene_data = full_data[~full_data['gene'].isin(specific_gene)]
     # this way we still have non specific amplicons incorporate the specific genes
-    # specific_gene_data = full_data.copy()
+    specific_gene_data = full_data.copy()
     # Create the condition for rows where 'gene' value is not in specific_gene
-    # condition = ~specific_gene_data['gene'].isin(specific_gene)
+    condition = ~specific_gene_data['gene'].isin(specific_gene)
     # Update the 'weight' column in the new DataFrame where the condition is True
-    # specific_gene_data.loc[condition, 'weight'] = 0
+    specific_gene_data.loc[condition, 'weight'] = 0
     non_specific_gene_data = full_data.copy()
     ref_size = wa.genome_size(ref_genome)
     specific_gene_data_count = 0
@@ -277,61 +231,7 @@ def main(args):
 
     if len(specific_gene)>0:
         print('=====Specific amplicon=====')
-        gff_df = extract_gff3(args.gff3_file)
-        # gff_df_lower = gff_df.applymap(lambda x: x.lower() if isinstance(x, str) else x)
-        gff_df_lower = gff_df.copy()
-        for col in gff_df_lower.columns:
-            if gff_df_lower[col].dtype == 'object':  # Check if the column is of type 'object' (string-like)
-                gff_df_lower[col] = gff_df_lower[col].str.lower()  # Convert the entire column to lowercase
-
-        for x in specific_gene:
-            # with np.printoptions(threshold=np.inf):
-                # print(gff_df['gene_id'].unique())
-            if (x not in gff_df_lower['gene_name'].tolist()) and (x not in gff_df_lower['gene_id'].tolist()):
-                raise Exception(f'>> *{x}* is not a valid gene name/id >> Try using gene id/name instead')
-        df1 = gff_df_lower[gff_df_lower['gene_id'].isin(specific_gene) | gff_df_lower['gene_name'].isin(specific_gene)]#[['start','end']]
         
-        all_positions = []
-        # Iterate through each range and generate positions
-        for i, row in df1.iterrows():
-            # Generate positions for the current range and append to the list
-            all_positions.extend(range(row.start, row.end + 1))  # end + 1 because range is exclusive at the end
-        # Create a DataFrame
-        specific_gene_data = pd.DataFrame({
-            'genome_pos': all_positions,
-            'weight': 1.0,
-            'freq': 1.0
-        })
-        
-        gene_names = []
-        changes = []
-        drugs = []
-        sublins = []
-        dr_types = []
-        for x in all_positions:
-            if x in full_data['genome_pos'].tolist():
-                gene_names.append(full_data[full_data['genome_pos'] == x]['gene'].values[0])
-                changes.append(full_data[full_data['genome_pos'] == x]['change'].values[0])
-                drugs.append(full_data[full_data['genome_pos'] == x]['drugs'].values[0])
-                sublins.append(full_data[full_data['genome_pos'] == x]['sublin'].values[0])
-                dr_types.append(full_data[full_data['genome_pos'] == x]['drtype'].values[0])
-                
-            else:
-                gene_names.append(gff_df[(gff_df['start'] <= x) & (gff_df['end'] >= x)]['gene_name'].tolist()[0])
-                changes.append('-')
-                drugs.append('-')
-                sublins.append('-')
-                dr_types.append('-')                
-        
-        specific_gene_data['gene'] = gene_names
-        specific_gene_data['change'] = changes
-        specific_gene_data['drugs'] = drugs
-        specific_gene_data['sublin'] = sublins
-        specific_gene_data['drtype'] = dr_types
-        
-        specific_gene_data = specific_gene_data.sort_values(by='genome_pos', ascending=True)
-        if specific_gene_amplicon == None:
-            specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size)
         # def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.'):
     
         covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)
@@ -430,7 +330,7 @@ def main(args):
         if row['pLeft_Sequences'] != primer_seq:
             # print('SNP in the Left primer')
             accepted_primers.loc[i, 'pLeft_Sequences'] = primer_seq
-        
+            
         #right primer
         primer_seq = ''
         for x,y in zip(range(row['pRight_coord'], row['pRight_coord']+len(row['pRight_Sequences'])), primer_selection.reverse_complement_sequence(row['pRight_Sequences'])):
@@ -496,7 +396,6 @@ def main(args):
 
     op = f'{output_path}/Amplicon_design_output'
     os.makedirs(op, exist_ok=True) #output path
-    accepted_primers.drop(columns=['index'], inplace=True)
     accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
 
 
@@ -915,12 +814,11 @@ def cli():
     input.add_argument('-sp_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = f'{db}/spacers.bed')
     input.add_argument('-as','--all_snps', type = str, help = 'All SNPs in the reference genome', default = f'{db}/all_snps.csv')
     input.add_argument('-ud','--user_defined_primers', type = str, help = 'user defined amplicon designs', default = None)
-    input.add_argument('-gff','--gff3_file', type = str, help = 'Genomic feature file .gff (version3) for the corresponding genome', default=f'{db}/MTB-h37rv_asm19595v2-eg18.gff')
     #design
     setting=parser_sub.add_argument_group("Design options")
     setting.add_argument('-a','--amplicon_size', type = int, help = 'Amplicon size', default=400)
     setting.add_argument('-p','--padding_size', type = int, help = 'Size of padding on each side of the target sequence during primer design (default: amplicon_size/4)', default=None)
-    setting.add_argument('-sn','--specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying specific genes', default=None)
+    setting.add_argument('-sn','--specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying specific genes', default=0 )
     setting.add_argument('-sg','--specific_amplicon_gene', type = str, help = 'Provide a list of gene names separated by comma <,>', default='')
     setting.add_argument('-nn','--non-specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying all SNPs in all genes according the importants list', default=20)
     setting.add_argument('-g','--graphic_option', action='store_true', help = 'Output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
