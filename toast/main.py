@@ -1,3 +1,4 @@
+#! trimming function - not really more like doing drug design for each amplicon size
 # from functools import partial
 # from random import choices, randint, randrange, random, sample
 # from typing import List, Optional, Callable, Tuple
@@ -95,7 +96,7 @@ def user_defined(primer_input_file: str, refgenome: str, full_data: pd.DataFrame
     return df, primer_pool, full_data, covered_ranges
     # Create an empty DataFrame with these columns
 
-def quick_estimate_amplicons(df, amplicon_length):
+def quick_estimate_amplicons(df, amplicon_length, segmented=None):
     """
     Estimates the number of amplicons needed to cover given genomic positions.
     
@@ -106,22 +107,43 @@ def quick_estimate_amplicons(df, amplicon_length):
     Returns:
     - The estimated number of amplicons needed.
     """
-    # Ensure the genomic positions are sorted
-    sorted_positions = df['genome_pos'].sort_values().unique()
-    
-    # Initialize counters
     amplicon_count = 0
     current_end = -1  # Initialize to a position before any possible genomic position
     
-    # Iterate through genomic positions
-    for pos in sorted_positions:
-        # Check if current position is outside the range of the current amplicon
-        if pos > current_end:
-            # Start a new amplicon
-            amplicon_count += 1
-            current_end = pos + amplicon_length - 1  # Determine the new amplicon's end position
-            
-    return amplicon_count
+    if segmented != None:
+        amplicon_sizes_l = np.arange(segmented[0], segmented[1]+1, segmented[2]).tolist()*segmented[3]
+        amplicon_sizes_l.sort(reverse=True)
+        
+        for gene in df['gene'].unique():
+            sorted_positions = df[df['gene']==gene]['genome_pos'].sort_values().unique()
+
+        # Iterate through genomic positions
+            for pos in sorted_positions:
+                # Check if current position is outside the range of the current amplicon
+                if pos > current_end:
+                    # Start a new amplicon
+                    amplicon_count += 1
+                    current_end = pos + amplicon_sizes_l.pop(0) - 1  # Determine the new amplicon's end position
+                    
+        return amplicon_count
+
+    else:
+        # Ensure the genomic positions are sorted
+        # Initialize counters
+
+        
+        for gene in df['gene'].unique():
+            sorted_positions = df[df['gene']==gene]['genome_pos'].sort_values().unique()
+        
+        # Iterate through genomic positions
+            for pos in sorted_positions:
+                # Check if current position is outside the range of the current amplicon
+                if pos > current_end:
+                    # Start a new amplicon
+                    amplicon_count += 1
+                    current_end = pos + amplicon_length - 1  # Determine the new amplicon's end position
+                    
+        return amplicon_count
 
 def extract_gff3(gff3_file_path):
     # Read the GFF3 file
@@ -141,6 +163,31 @@ def extract_gff3(gff3_file_path):
     # Rename columns for clarity
     genes_info_df.columns = ['gene_id', 'gene_name', 'chr', 'start', 'end']
     return genes_info_df
+
+def pop_first_item(d, a):
+    if d:
+        # Get the first key in the dictionary
+        first_key = next(iter(d))
+        
+        if a<d[first_key]: # a is only inputed if 
+            d.update({first_key: d[first_key]-a})
+            return first_key, a
+        # Remove and return the key-value pair
+        return first_key, d.pop(first_key)
+    else:
+        raise KeyError('pop_first_item(): dictionary is empty')
+
+
+
+def pop_first_item_simple(d):
+    if d:
+        # Get the first key in the dictionary
+        first_key = next(iter(d))
+        # Remove and return the key-value pair
+        return first_key, d.pop(first_key)
+    else:
+        raise KeyError('pop_first_item(): dictionary is empty')
+
 
 def main(args):
     print('>>>Designing Amplicons')
@@ -167,15 +214,21 @@ def main(args):
     print(f"gff file: {args.gff3_file}")
     print(f"User defined primers: {args.user_defined_primers}")
     if args.padding_size == None:
-        print(f"Padding_size: {args.amplicon_size/6}")
+        print(f"Padding_size: {int(args.amplicon_size/6)}")
         # print(f"Padding_size: {args.amplicon_size/8}")
     else:
         print(f"Padding_size: {args.padding_size}")
+        
+    if args.segmented_amplicon_size != None:
+        print(f"Segmented Amplicon Size [min, max, step, count of each step]: [{args.segmented_amplicon_size}]")
     if args.specific_amplicon_no != None:
         print(f"Specific Amplicon Number: {args.specific_amplicon_no}")
     if args.specific_amplicon_gene != '':
         print(f"Specific Amplicon Gene: {args.specific_amplicon_gene}")
-    print(f"Non-specific Amplicon Number: {args.non_specific_amplicon_no}")
+    if args.segmented_amplicon_size != None:
+        print(f"Non-specific Amplicon Number: unused")
+    else:
+        print(f"Non-specific Amplicon Number: {args.non_specific_amplicon_no}")
     print(f'Amplicon search setting: {args.global_args}')
     print(f"Graphic Option: {args.graphic_option}")
     print(f"Spoligo Sequencing: {args.spoligo_coverage}")
@@ -238,6 +291,7 @@ def main(args):
     primer_input_file = args.user_defined_primers
 
     covered_positions, covered_ranges = [], []
+    covered_positions_nosp, covered_ranges_nosp, covered_positions_sp, covered_ranges_sp  = {}, [], {}, []
     primer_pool, no_primer_ = [], []
     accepted_primers = pd.DataFrame(columns = ['pLeft_ID', 'pLeft_coord', 'pLeft_length', 'pLeft_Tm', 'pLeft_GC',
         'pLeft_Sequences', 'pLeft_EndStability', 'pRight_ID', 'pRight_coord',
@@ -274,6 +328,17 @@ def main(args):
     # Calculating number of amplicon needed
     # target_coverage = 1
     # gene_coverage = Amplicon_no.place_amplicon_search(full_data, target_coverage, read_size, genome_size(ref_genome))
+    if args.segmented_amplicon_size != None:
+        segmented = args.segmented_amplicon_size     
+        segmented = segmented.strip().split(',')
+        segmented = [int(i.strip()) for i in segmented]
+        amplicon_sizes_l = np.arange(segmented[0], segmented[1]+1, segmented[2]).tolist()*segmented[3]
+        # amplicon_sizes.sort(reverse=True)
+        # read_size = amplicon_sizes[0] # use max amplicon size
+        amplicon_sizes = {value: amplicon_sizes_l.count(value) for value in set(amplicon_sizes_l)}
+        amplicon_sizes = dict(sorted(amplicon_sizes.items(), reverse=True))
+        print('==Segmented amplicon size:', amplicon_sizes)
+        
 
     if len(specific_gene)>0:
         print('=====Specific amplicon=====')
@@ -331,37 +396,103 @@ def main(args):
         
         specific_gene_data = specific_gene_data.sort_values(by='genome_pos', ascending=True)
         if specific_gene_amplicon == None:
-            specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size)
+            if segmented:
+                specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size, segmented)
+                print(specific_gene_amplicon)
+            else:
+                specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size)
         # def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.'):
-    
-        covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)
-        specific_gene_data_count = accepted_primers.shape[0] - user_defined_no                                          
-        print('=====Non-specific amplicon=====')
-        for (x, y) in covered_ranges_sp:
-            condition = (non_specific_gene_data['genome_pos'] >= x) & (non_specific_gene_data['genome_pos'] <= y)
-            non_specific_gene_data.loc[condition, 'weight'] = 0
-
-        # non_specific_gene_data.update(specific_gene_data) # add the specific gene data to the non-specific gene data
-        covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
-        covered_positions = {**covered_positions_sp, **covered_positions_nosp}
-    
-        covered_ranges = covered_ranges + covered_ranges_sp + covered_ranges_nosp
-        non_specific_gene_data_count = accepted_primers.shape[0] - user_defined_no - specific_gene_data_count
+            if segmented:
+                if specific_gene_amplicon > len(amplicon_sizes_l):
+                    raise Exception(f'!! The number of specific amplicons needed{specific_gene_amplicon} is more than the number of amplicon sizes specified, consider increasing the number of amplicon sizes or reducing the number of specific amplicons')
+            print(f'> {specific_gene_amplicon} amplicons assigned for specific gene ({specific_gene}) coverage')
+        if segmented:
+            # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon
+            #     read_size, read_num = pop_first_item(amplicon_sizes)
+            #     covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)
+            #     covered_positions = covered_positions + covered_positions_sp
+                
+            while specific_gene_amplicon > 0:
+                read_size, read_num = pop_first_item(amplicon_sizes, specific_gene_amplicon)
+                if read_num < specific_gene_amplicon:
+                    specific_gene_amplicon -= read_num
+                    covered_positions_sp_, covered_ranges_sp_, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                    covered_positions_sp =  {**covered_positions_sp, **covered_positions_sp_}
+                    covered_ranges_sp = covered_ranges_sp + covered_ranges_sp_
+                else:
+                    read_num = specific_gene_amplicon
+                    covered_positions_sp_, covered_ranges_sp_, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                    covered_positions_sp =  {**covered_positions_sp, **covered_positions_sp_}
+                    covered_ranges_sp = covered_ranges_sp + covered_ranges_sp_
+                    specific_gene_amplicon = 0
+                    
         
+        else:
+            covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)
+        specific_gene_data_count = accepted_primers.shape[0] - user_defined_no 
+
+        if non_specific_amplicon > 0:
+            print('=====Non-specific amplicon=====')
+            
+            for (x, y) in covered_ranges_sp:         # below code is to add specific gene changed weights onto full data
+                condition = (non_specific_gene_data['genome_pos'] >= x) & (non_specific_gene_data['genome_pos'] <= y)
+                non_specific_gene_data.loc[condition, 'weight'] = 0
+
+
+            # non_specific_gene_data.update(specific_gene_data) # add the specific gene data to the non-specific gene data
+            if segmented:
+                # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon
+                for x in range(len(amplicon_sizes)):
+                    read_size, read_num = pop_first_item_simple(amplicon_sizes)
+                    covered_positions_nosp_, covered_ranges_nosp_, non_specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                    covered_positions_nosp =  {**covered_positions_nosp, **covered_positions_nosp_}
+                    
+                    covered_ranges_nosp = covered_ranges_nosp + covered_ranges_nosp_
+            else:
+                covered_positions_nosp, covered_ranges_nosp, non_specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+            
+            
+            covered_positions = {**covered_positions_sp, **covered_positions_nosp}
+        
+            covered_ranges = covered_ranges + covered_ranges_sp + covered_ranges_nosp
+            non_specific_gene_data_count = accepted_primers.shape[0] - user_defined_no - specific_gene_data_count
+        else:
+            non_specific_gene_data_count = 0
+            covered_positions = covered_positions_sp
+            covered_ranges = covered_ranges_sp
+
     else:
         if args.non_specific_amplicon_no > 0:
             print('=====Non-specific amplicon=====')
-            covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_,ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
-            covered_positions = covered_positions_nosp
+            if segmented:
+                # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon
+                #     read_size, read_num = pop_first_item(amplicon_sizes)
+                #     covered_positions_nosp_, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                #     covered_positions_nosp = covered_positions_nosp + covered_positions_nosp_
+                #     covered_ranges = covered_ranges + covered_ranges_nosp
+                # non_specific_gene_data_count = accepted_primers.shape[0] - user_defined_no
+                
+                for x in range(len(amplicon_sizes)):
+                    read_size, read_num = pop_first_item_simple(amplicon_sizes)
+                    covered_positions_nosp_, covered_ranges_nosp_, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                    covered_positions_nosp = covered_positions_nosp + covered_positions_nosp_
+                    covered_ranges_nosp = covered_ranges_nosp + covered_ranges_nosp_
+      
+            else:
+                covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_,ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                covered_positions = covered_positions_nosp
             covered_ranges = covered_ranges + covered_ranges_nosp
             non_specific_gene_data_count = accepted_primers.shape[0] - user_defined_no
         else:
+            non_specific_gene_data_count = 0
             pass
         
     # whether or not you wanna include spoligotyping sequencing
     spoligotype = args.spoligo_coverage
     covered_ranges_spol = []
     # if spoligotype:            
+
+    # get the amplicon numbers in order:
 
     #     print('=====Spoligotype amplicon=====')
 
@@ -411,6 +542,7 @@ def main(args):
     accepted_primers['Redesign'] = no_primer_
     accepted_primers['Designed_ranges'] = ['-']*user_defined_no + covered_ranges
     accepted_primers.reset_index(inplace = True)
+    
     
     #accepted_primers - change primer to iupac
     threshold = 0.001
@@ -491,9 +623,47 @@ def main(args):
 
     accepted_primers.insert(1, 'Amplicon_ID', amplicone_name_list)
 
+    if segmented:
+        def increment_id_with_regex(df, col_name):
+            counter = {}  # Track counts of each ID
+            new_ids = []  # Store updated IDs
+
+            for id in df[col_name]:
+                original_id = id
+                # Use regex to find all numbers in the ID
+                numbers = re.findall(r'\d+', id)
+                if numbers:
+                    last_number = numbers[-1]  # Focus on the last number found
+                    new_id = id
+                    while new_id in counter:
+                        # Increment the last number found
+                        new_number = str(int(last_number) + 1)
+                        # Replace the last occurrence of the number with its incremented value
+                        new_id = re.sub(r'(?<!\d)'+last_number+r'(?!\d)', new_number, new_id, count=1)
+                        last_number = new_number  # Update last_number for potential next iteration
+
+                    counter[new_id] = True  # Mark this new ID as seen
+                    new_ids.append(new_id)  # Add to the list of new IDs
+                else:
+                    # If no number is found, just append the ID as is
+                    new_ids.append(id)
+
+                # Update counter for the original ID if it's not already there to handle non-duplicates correctly
+                if original_id not in counter:
+                    counter[original_id] = True
+
+            df[col_name] = new_ids  # Update the column with new IDs
+    
+    increment_id_with_regex(accepted_primers,'Amplicon_ID')
+    increment_id_with_regex(accepted_primers, 'pLeft_ID')
+    increment_id_with_regex(accepted_primers, 'pRight_ID')
+
+
     # accepted_primers['pLeft_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pLeft_ID'], x['Amplicon_type'], 'L'), axis=1)
     # accepted_primers['pRight_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pRight_ID'], x['Amplicon_type'], 'R'), axis=1)
-
+    if segmented:
+        read_size = '/'.join(amplicon_sizes_l)
+    
     op = f'{output_path}/Amplicon_design_output'
     os.makedirs(op, exist_ok=True) #output path
     accepted_primers.drop(columns=['index'], inplace=True)
@@ -536,8 +706,6 @@ def main(args):
     # primer_inclusion['SNP'] = snp_list
     # primer_inclusion['Genomic_pos'] = pos_list
     # primer_inclusion['Amplicon_ID'] = amplicon_id_list
-
-
 
     # Function to find matching amplicon IDs for each row in full_data
     def find_amplicon_ids(row):
@@ -836,17 +1004,13 @@ def cli():
         Purpose: To design specific amplicons for TB genes.
         Inputs:
         SNP priorities, reference genomes, spoligotype sequencing files, user defined primers.
+        Alternative input of min amplicon size, max amplicon size, step size, count for each step size can be inputed to crease different sized amplicons.
         Settings:
         Amplicon size, padding size, specific/non-specific amplicon numbers.
         Option for graphical output.
         Outputs:
         Files in specified output folder path.
-        **Genes involved in the default SNP database: 
-            rpoB, rpsL, katG, embB, fabG1, ethR, pncA, tlyA,
-            gyrA, rrs, mmpR5, gid, eis, ethA, folC, rpoC,
-            embA, alr, gyrB, inhA, ahpC, ald, thyX, thyA,
-            rplC, ddn, embC, fbiA, kasA, rrl, embR, panD,
-            ribD, rpsA, fgd1 **
+
         
     Amplicon Number Estimates Function - (amplicon_no)
         Purpose: To estimate the number of amplicons for SNP coverage in TB genomic studies.
@@ -916,13 +1080,14 @@ def cli():
     input.add_argument('-as','--all_snps', type = str, help = 'All SNPs in the reference genome', default = f'{db}/all_snps.csv')
     input.add_argument('-ud','--user_defined_primers', type = str, help = 'user defined amplicon designs', default = None)
     input.add_argument('-gff','--gff3_file', type = str, help = 'Genomic feature file .gff (version3) for the corresponding genome', default=f'{db}/MTB-h37rv_asm19595v2-eg18.gff')
+    input.add_argument('-seg','--segmented_amplicon_size', type = str, help = 'design various sized amplicon, provide input in the following comma separated format: min_size, max_size, step_size, count for each step size', default=None)
     #design
     setting=parser_sub.add_argument_group("Design options")
     setting.add_argument('-a','--amplicon_size', type = int, help = 'Amplicon size', default=400)
-    setting.add_argument('-p','--padding_size', type = int, help = 'Size of padding on each side of the target sequence during primer design (default: amplicon_size/4)', default=None)
+    setting.add_argument('-p','--padding_size', type = int, help = 'Size of padding on each side of the target sequence during primer design (default: amplicon_size/6)', default=None)
     setting.add_argument('-sn','--specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying specific genes', default=None)
     setting.add_argument('-sg','--specific_amplicon_gene', type = str, help = 'Provide a list of gene names separated by comma <,>', default='')
-    setting.add_argument('-nn','--non-specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying all SNPs in all genes according the importants list', default=20)
+    setting.add_argument('-nn','--non-specific_amplicon_no', type = int, help = 'Number of amplicon dedicated to amplifying all SNPs in all genes according the importants list', default=10)
     setting.add_argument('-g','--graphic_option', action='store_true', help = 'Output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
     setting.add_argument('-sc','--spoligo_coverage', action='store_true', help = 'Whether to amplify Spoligotype', default = False)
     setting.add_argument('-set','--global_args', help = 'Amplicon search setting', default = f'{db}/default_primer_design_setting.json')

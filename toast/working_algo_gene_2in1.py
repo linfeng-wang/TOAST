@@ -176,7 +176,7 @@ def nucleotide_to_iupac(nucleotides):
 #%%
 # ideal_range = []
 #place_amplicon function
-def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, graphic_output=False, padding=150, output_path = '.', check_snp = True):
+def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, graphic_output=False, padding=150, output_path = '.', check_snp = True, start_end_r=None):
     start = time.time()
     # print( read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output, padding, output_path)
     read_number = read_number
@@ -237,14 +237,16 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
             # fig.show()
             fig.write_image(f"{op}/{window_size}bps_Amplicon-#{run+1}_df_size{full_data.shape[0]}.png")
             print(f'**Graphic output saved to: {op}')
-        
-        start_r = pos[np.argmax(weight_window_sum)] # find the index of the max value in the rolling sum
-        # in_range = [i for i in pos if i <= start+window_size] # find all values in the window
-        # end = min(in_range, key=lambda x:abs(x-(start+window_size))) # find the closest value to the end of the window
-        # print(start_r)
-        end_r = start_r+window_size
-        start_r = start_r
-        end_r = end_r
+        if start_end_r is None:
+            start_r = pos[np.argmax(weight_window_sum)] # find the index of the max value in the rolling sum
+            # in_range = [i for i in pos if i <= start+window_size] # find all values in the window
+            # end = min(in_range, key=lambda x:abs(x-(start+window_size))) # find the closest value to the end of the window
+            # print(start_r)
+            end_r = start_r+window_size
+            start_r = start_r
+            end_r = end_r
+        else:
+            start_r, end_r = start_end_r[0], start_end_r[1]
                 
         print(f'Designing primers...for {read_size}bps Amplicons...with {padding}bps padding for genomic region {start_r}-{end_r}')
 

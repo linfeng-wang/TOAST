@@ -4,6 +4,14 @@
 
 Here we introduced TOAST software tool aimed at addressing the challenges in amplicon primer design for TB sequencing leveraging the package primer3 for Tm, homopolymers, hairpins, homodimers considerations and in-house pipeline for avoiding heterodimer, alternative binding. This automated too in takes user defined SNP priority for amplicon coverage and outputs designed amplicon primers with respective Tm and primer coordinates and sequence with capability of focusing on specific genes and taking into account of spoligotypes 
 
+### How to install
+Install the required conda environment
+```conda env create -n TOAST -f environment.yml```
+Clone repository
+```git clone <repo html link>```
+Install Python package (be in the root directory of the repository)
+```pip install .```
+
 ### Workflow
 #### Before running the tool
 *Decide on SNP priority by modifying the SNP priority file (variant.csv)
@@ -84,3 +92,6 @@ Get to the code directory
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 20
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 30
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 40
+
+
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 600,800,50,2 -sg rpoB,katG
