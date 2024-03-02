@@ -123,6 +123,47 @@ def quick_estimate_amplicons(df, amplicon_length):
             
     return amplicon_count
 
+def optimal_amplicon_coverage(df, amplicon_lengths):
+    """
+    Finds the optimal combination of amplicons of various lengths to cover given genomic positions.
+    
+    Parameters:
+    - df: DataFrame with a 'genomic_pos' column representing genomic positions.
+    - amplicon_lengths: A list of possible lengths that a single amplicon can cover.
+    
+    Returns:
+    - The total number of amplicons needed and the chosen lengths for each segment.
+    """
+    # Ensure the genomic positions are sorted
+    sorted_positions = df['genomic_pos'].sort_values().unique()
+    
+    # Initialize counters and storage for results
+    total_amplicons_needed = 0
+    coverage_plan = []  # To store the start position and length of each chosen amplicon
+    
+    current_position = sorted_positions[0]
+    end_position = sorted_positions[-1]
+    
+    while current_position <= end_position:
+        # Find the longest amplicon that can cover the next segment without skipping positions
+        optimal_amplicon = max(
+            [length for length in amplicon_lengths if current_position + length - 1 <= end_position and
+            not any(pos < current_position + length and pos > current_position for pos in sorted_positions)],
+            default=None,
+            key=lambda x: x
+        )
+        
+        if optimal_amplicon is None:
+            raise ValueError("Cannot cover all positions with given amplicon lengths.")
+        
+        # Update counters and results
+        total_amplicons_needed += 1
+        coverage_plan.append((current_position, optimal_amplicon))
+        current_position += optimal_amplicon  # Move to the next segment
+        
+    return total_amplicons_needed, coverage_plan
+
+
 def extract_gff3(gff3_file_path):
     # Read the GFF3 file
     gff3_columns = ['seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes']
@@ -274,7 +315,13 @@ def main(args):
     # Calculating number of amplicon needed
     # target_coverage = 1
     # gene_coverage = Amplicon_no.place_amplicon_search(full_data, target_coverage, read_size, genome_size(ref_genome))
-
+    segmented = args.segmented_amplicon_size     
+    segmented = segmented.strip().split(',')
+    segmented = [int(i.strip()) for i in segmented]
+    amplicon_sizes = np.arange(segmented[0], segmented[1]+1, segmented[2]).tolist()*2
+    value_counts = {value: amplicon_sizes.count(value) for value in set(amplicon_sizes)}
+    value_counts = dict(sorted(value_counts.items(), reverse=True))
+    
     if len(specific_gene)>0:
         print('=====Specific amplicon=====')
         gff_df = extract_gff3(args.gff3_file)
@@ -332,6 +379,7 @@ def main(args):
         specific_gene_data = specific_gene_data.sort_values(by='genome_pos', ascending=True)
         if specific_gene_amplicon == None:
             specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size)
+            pecific_gene_amplicon = optimal_amplicon_coverage(specific_gene_data, )
         # def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.'):
     
         covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)
@@ -631,9 +679,9 @@ def main(args):
     
     out_bed = {}
     colors = ['0,0,255', '0,255,0', '255,0,0', '128,0,0']*(accepted_primers.shape[0]-user_defined_no) # defined colors for designed amplicons
-    # print('user_defined_no:', user_defined_no)
-    # print('accepted_primers.shape[0]:', accepted_primers.shape[0])
-    # print(accepted_primers)
+    print('user_defined_no:', user_defined_no)
+    print('accepted_primers.shape[0]:', accepted_primers.shape[0])
+    print(accepted_primers)
     colors = ['0,255,0',  '255,0,0', '128,0,0']*user_defined_no+colors # adding coloration for designed amplicons after user defined amplions
     # for i, x in accepted_primers.iterrows():
     #     designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}"
@@ -671,8 +719,8 @@ def main(args):
     out[5] = '.' # strand
     out[6] = out[0] # thickStart
     out[7] = out[1] #ThickEnd
-    # print(out)
-    # print(colors)
+    print(out)
+    print(colors)
     out[8] = colors # itemRgb
     out.columns = ['col0', 'col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
     condition = ~((out['col3'].str.contains('Designed')) & (out['col3'].str.contains('User')))

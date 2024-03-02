@@ -398,7 +398,6 @@ def main(args):
         if specific_gene_amplicon == None:
             if segmented:
                 specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size, segmented)
-                print(specific_gene_amplicon)
             else:
                 specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size)
         # def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.'):
@@ -622,38 +621,76 @@ def main(args):
         amplicone_name_list.append(amplicone_name)
 
     accepted_primers.insert(1, 'Amplicon_ID', amplicone_name_list)
-
+    # print('before increment')
+    # print(accepted_primers)
     if segmented:
+        # def increment_id_with_regex(df, col_name):
+        #     counter = {}  # Track counts of each ID
+        #     new_ids = []  # Store updated IDs
+
+        #     for id in df[col_name]:
+        #         original_id = id
+        #         # Use regex to find all numbers in the ID
+        #         numbers = re.findall(r'\d+', id)
+        #         if numbers:
+        #             last_number = numbers[-1]  # Focus on the last number found
+        #             new_id = id
+        #             while new_id in counter:
+        #                 # Increment the last number found
+        #                 new_number = str(int(last_number) + 1)
+        #                 # Replace the last occurrence of the number with its incremented value
+        #                 new_id = re.sub(r'(?<!\d)'+last_number+r'(?!\d)', new_number, new_id, count=1)
+        #                 last_number = new_number  # Update last_number for potential next iteration
+
+        #             counter[new_id] = True  # Mark this new ID as seen
+        #             new_ids.append(new_id)  # Add to the list of new IDs
+        #         else:
+        #             # If no number is found, just append the ID as is
+        #             new_ids.append(id)
+
+        #         # Update counter for the original ID if it's not already there to handle non-duplicates correctly
+        #         if original_id not in counter:
+        #             counter[original_id] = True
+
+        #     df[col_name] = new_ids  # Update the column with new IDs
+
         def increment_id_with_regex(df, col_name):
             counter = {}  # Track counts of each ID
             new_ids = []  # Store updated IDs
 
             for id in df[col_name]:
-                original_id = id
+                # original_id = id
                 # Use regex to find all numbers in the ID
+                if 'User' in id:
+                    continue
                 numbers = re.findall(r'\d+', id)
-                if numbers:
-                    last_number = numbers[-1]  # Focus on the last number found
-                    new_id = id
-                    while new_id in counter:
-                        # Increment the last number found
-                        new_number = str(int(last_number) + 1)
-                        # Replace the last occurrence of the number with its incremented value
-                        new_id = re.sub(r'(?<!\d)'+last_number+r'(?!\d)', new_number, new_id, count=1)
-                        last_number = new_number  # Update last_number for potential next iteration
 
-                    counter[new_id] = True  # Mark this new ID as seen
+                if numbers:
+                    first_number = numbers[0]  # Focus on the first number found
+                    if len(id.split('-')) > 2:
+                        check_id = '-'.join(id.split('-')[:-1])
+                    else:
+                        check_id = id
+                    new_id = id
+                    while check_id in counter:                
+                        # Increment the first number found
+                        new_number = str(int(first_number) + 1)
+                        # Replace the first occurrence of the number with its incremented value
+                        new_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, new_id, count=1)
+                        check_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, check_id, count=1)
+                        first_number = new_number  # Update first_number for potential next iteration
+                    counter[check_id] = True  # Mark this new ID as seen
                     new_ids.append(new_id)  # Add to the list of new IDs
-                else:
-                    # If no number is found, just append the ID as is
-                    new_ids.append(id)
+                # else:
+                #     # If no number is found, just append the ID as is
+                #     new_ids.append(id)
 
                 # Update counter for the original ID if it's not already there to handle non-duplicates correctly
-                if original_id not in counter:
-                    counter[original_id] = True
+                # if original_id not in counter:
+                #     counter[original_id] = True
 
             df[col_name] = new_ids  # Update the column with new IDs
-    
+
     increment_id_with_regex(accepted_primers,'Amplicon_ID')
     increment_id_with_regex(accepted_primers, 'pLeft_ID')
     increment_id_with_regex(accepted_primers, 'pRight_ID')
@@ -662,7 +699,8 @@ def main(args):
     # accepted_primers['pLeft_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pLeft_ID'], x['Amplicon_type'], 'L'), axis=1)
     # accepted_primers['pRight_ID'] = accepted_primers.apply(lambda x: wa.modify_primer_name(x['pRight_ID'], x['Amplicon_type'], 'R'), axis=1)
     if segmented:
-        read_size = '/'.join(amplicon_sizes_l)
+        
+        read_size = '_'.join(str(x) for x in segmented)
     
     op = f'{output_path}/Amplicon_design_output'
     os.makedirs(op, exist_ok=True) #output path
@@ -812,6 +850,7 @@ def main(args):
     #         amplicone_name = f"A{i+1-user_defined_no}-{x['pLeft_ID'].split('-')[1]}"
             
     for i, x in accepted_primers.iterrows():
+        # print(x['pLeft_ID'])
         # designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}
         if 'User' not in x['pLeft_ID']:
             match = re.search("P(\d+)", x['pLeft_ID'])
@@ -845,6 +884,7 @@ def main(args):
     out.columns = ['col0', 'col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
     condition = ~((out['col3'].str.contains('Designed')) & (out['col3'].str.contains('User')))
     out = out[condition]
+    # print(out)
     
     if spoligotype:
         print('=====Spoligotype amplicon=====')
