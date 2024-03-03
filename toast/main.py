@@ -404,7 +404,7 @@ def main(args):
             if segmented:
                 if specific_gene_amplicon > len(amplicon_sizes_l):
                     raise Exception(f'!! The number of specific amplicons needed{specific_gene_amplicon} is more than the number of amplicon sizes specified, consider increasing the number of amplicon sizes or reducing the number of specific amplicons')
-            print(f'> {specific_gene_amplicon} amplicons assigned for specific gene ({specific_gene}) coverage')
+            print(f'> {specific_gene_amplicon} amplicons assigned for specific gene {specific_gene} coverage')
         if segmented:
             # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon
             #     read_size, read_num = pop_first_item(amplicon_sizes)
@@ -440,6 +440,8 @@ def main(args):
 
             # non_specific_gene_data.update(specific_gene_data) # add the specific gene data to the non-specific gene data
             if segmented:
+                if len(amplicon_sizes) == 0:
+                    print('!! No more amplicon to use for non-specific gene coverage, all has been used up for specific gene coverage, consider increasing the number of amplicon')    
                 # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon
                 for x in range(len(amplicon_sizes)):
                     read_size, read_num = pop_first_item_simple(amplicon_sizes)
@@ -701,6 +703,13 @@ def main(args):
     if segmented:
         
         read_size = '_'.join(str(x) for x in segmented)
+    
+    def len_calc(l):
+        # coords = [int(x.replace('[', '').replace(']', '')) for x in l.split(',')]
+        coords = l
+        return coords[1] - coords[0]
+
+    accepted_primers['Designed_size'] =  list(map(len_calc, accepted_primers['Designed_ranges']))
     
     op = f'{output_path}/Amplicon_design_output'
     os.makedirs(op, exist_ok=True) #output path
