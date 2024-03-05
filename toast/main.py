@@ -96,6 +96,11 @@ def user_defined(primer_input_file: str, refgenome: str, full_data: pd.DataFrame
     return df, primer_pool, full_data, covered_ranges
     # Create an empty DataFrame with these columns
 
+def find_closest_number(target, numbers):
+    # Calculate the absolute difference between the target and each number in the list
+    closest_num = min(numbers, key=lambda x: abs(x - target))
+    return closest_num
+
 def quick_estimate_amplicons(df, amplicon_length, segmented=None):
     """
     Estimates the number of amplicons needed to cover given genomic positions.
@@ -113,19 +118,34 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
     if segmented != None:
         amplicon_sizes_l = np.arange(segmented[0], segmented[1]+1, segmented[2]).tolist()*segmented[3]
         amplicon_sizes_l.sort(reverse=True)
-        
+        used = []
         for gene in df['gene'].unique():
             sorted_positions = df[df['gene']==gene]['genome_pos'].sort_values().unique()
-
+            sorted_positions_max = max(sorted_positions)
+            sorted_positions_min = min(sorted_positions)
+            sorted_positions_size = max(sorted_positions) - min(sorted_positions)
+            while sorted_positions_size > 0:
+                a_number = find_closest_number(sorted_positions_size, amplicon_sizes_l)
+                amplicon_sizes_l.remove(a_number)
+                used.append(a_number)
+                amplicon_count += 1
+                sorted_positions_size -= a_number
+            
         # Iterate through genomic positions
-            for pos in sorted_positions:
-                # Check if current position is outside the range of the current amplicon
-                if pos > current_end:
-                    # Start a new amplicon
-                    amplicon_count += 1
-                    current_end = pos + amplicon_sizes_l.pop(0) - 1  # Determine the new amplicon's end position
-                    
-        return amplicon_count
+            # for pos in sorted_positions:
+            #     # Check if current position is outside the range of the current amplicon
+            #     if pos > current_end:
+            #         # Start a new amplicon
+            #         amplicon_count += 1
+            #         current_end = pos + amplicon_sizes_l.pop(0) - 1  # Determine the new amplicon's end position
+        
+        unused_ = {value: amplicon_sizes_l.count(value) for value in set(amplicon_sizes_l)}
+        unused_ = dict(sorted(unused_.items(), reverse=True))
+        
+        used_ = {value: used.count(value) for value in set(used)}
+        used_ = dict(sorted(used_.items(), reverse=True))
+        
+        return amplicon_count, used_, unused_
 
     else:
         # Ensure the genomic positions are sorted
@@ -397,13 +417,13 @@ def main(args):
         specific_gene_data = specific_gene_data.sort_values(by='genome_pos', ascending=True)
         if specific_gene_amplicon == None:
             if segmented:
-                specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size, segmented)
+                specific_gene_amplicon, used, unused = quick_estimate_amplicons(specific_gene_data, read_size, segmented)
             else:
                 specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size)
         # def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.'):
-            if segmented:
-                if specific_gene_amplicon > len(amplicon_sizes_l):
-                    raise Exception(f'!! The number of specific amplicons needed{specific_gene_amplicon} is more than the number of amplicon sizes specified, consider increasing the number of amplicon sizes or reducing the number of specific amplicons')
+            # if segmented:
+            if specific_gene_amplicon > len(amplicon_sizes_l):
+                raise Exception(f'!! The number of specific amplicons needed{specific_gene_amplicon} is more than the number of amplicon sizes specified, consider increasing the number of amplicon sizes or reducing the number of specific amplicons')
             print(f'> {specific_gene_amplicon} amplicons assigned for specific gene {specific_gene} coverage')
         if segmented:
             # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon
@@ -412,7 +432,7 @@ def main(args):
             #     covered_positions = covered_positions + covered_positions_sp
                 
             while specific_gene_amplicon > 0:
-                read_size, read_num = pop_first_item(amplicon_sizes, specific_gene_amplicon)
+                read_size, read_num = pop_first_item(used, specific_gene_amplicon)
                 if read_num < specific_gene_amplicon:
                     specific_gene_amplicon -= read_num
                     covered_positions_sp_, covered_ranges_sp_, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
@@ -437,9 +457,9 @@ def main(args):
                 condition = (non_specific_gene_data['genome_pos'] >= x) & (non_specific_gene_data['genome_pos'] <= y)
                 non_specific_gene_data.loc[condition, 'weight'] = 0
 
-
             # non_specific_gene_data.update(specific_gene_data) # add the specific gene data to the non-specific gene data
             if segmented:
+                amplicon_sizes = unused
                 if len(amplicon_sizes) == 0:
                     print('!! No more amplicon to use for non-specific gene coverage, all has been used up for specific gene coverage, consider increasing the number of amplicon')    
                 # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon

@@ -94,4 +94,5 @@ toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_outpu
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 40
 
 
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 600,800,50,2 -sg rpoB,katG
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 600,800,50,2 -sg Rv0678
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 400,800,50,2 -sg Rv0678

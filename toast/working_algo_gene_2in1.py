@@ -179,8 +179,6 @@ def nucleotide_to_iupac(nucleotides):
 def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, graphic_output=False, padding=150, output_path = '.', check_snp = True, start_end_r=None):
     start = time.time()
     # print( read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output, padding, output_path)
-    read_number = read_number
-    read_size = read_size
     window_size = read_size
     run = 0
     full_data_cp = full_data.copy()
@@ -245,6 +243,17 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
             end_r = start_r+window_size
             start_r = start_r
             end_r = end_r
+                        
+            
+            _snps = full_data_cp[(full_data_cp['genome_pos'] >= start_r) & (full_data_cp['genome_pos'] <= end_r)]
+            _snp_pos = _snps[_snps['weight'] != 0]['genome_pos'].tolist()
+            
+            if (min(_snp_pos) - start_r > 15) and ((end_r - max(_snp_pos))/(min(_snp_pos) - start_r) > 4): # roughly to the the important snps to move to the middle of the amplicon instead of just being at hte start of the amplicon
+                mid = int(min(_snp_pos) + (max(_snp_pos) - min(_snp_pos))/2)
+                _len = int((end_r - start_r)/2)
+                start_r = mid - _len
+                end_r = mid + _len
+                        
         else:
             start_r, end_r = start_end_r[0], start_end_r[1]
                 
@@ -321,7 +330,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         # print(f'Consider reducing number of amplicons by: {reduce_amplicon}')
         # print('====================')
     end = time.time()
-    print(f'>> Programme ran for {round((end - start)/60,1)} min')
+    print(f'>> Design process ran for {round((end - start)/60,1)} min')
 
     # return covered_positions, covered_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
     return covered_positions, designed_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
