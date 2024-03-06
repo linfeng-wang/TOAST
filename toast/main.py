@@ -3,6 +3,8 @@
 # from random import choices, randint, randrange, random, sample
 # from typing import List, Optional, Callable, Tuple
 import numpy as np
+import time
+
 # from geneticalgorithm import geneticalgorithm as ga
 from rich_argparse import ArgumentDefaultsRichHelpFormatter
 import pandas as pd
@@ -118,15 +120,14 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
     current_end = -1  # Initialize to a position before any possible genomic position
     
     if segmented != None: 
-        amplicon_sizes_l = np.arange(segmented[0], segmented[1]+1, segmented[2]).tolist()*segmented[3]
+        # amplicon_sizes_l = np.arange(segmented[0], segmented[1]+1, segmented[2]).tolist()*segmented[3]
         used = []
-        numbers = amplicon_sizes_l
+        numbers = segmented.copy()
         numbers.sort()
         for gene in df['gene'].unique(): # for each gene
             sorted_positions = df[df['gene']==gene]['genome_pos'].sort_values().unique()
-
             sorted_positions_size = max(sorted_positions) - min(sorted_positions)
-
+            # print('sorted_positions_size:', sorted_positions_size)
             target = sorted_positions_size
             min_combination = None
             # Initialize min_sum to a large value
@@ -135,6 +136,7 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
             for r in range(1, len(numbers) + 1): 
                 for combo in combinations(numbers, r): # look for the best combination of amplicon sizes that exceeds the gene target by the least amount
                     current_sum = sum(combo)
+                    # print(current_sum, combo, r)
                     # If current sum exceeds target, check if it's the new minimum
                     if current_sum > target:
                         if current_sum < min_sum:
@@ -146,15 +148,13 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
                 # Early stopping: if the smallest combination of length r exceeds the target, longer lengths will too
                 if min_sum <= sum(numbers[:r]):
                     break
+            # print('min_combination:', min_combination)
             used.extend(min_combination)
             for x in min_combination:
                 numbers.remove(x)
-
-
-        
+                
         unused_ = {value: numbers.count(value) for value in set(numbers)}
         unused_ = dict(sorted(unused_.items(), reverse=True))
-        
         used_ = {value: used.count(value) for value in set(used)}
         used_ = dict(sorted(used_.items(), reverse=True))
         
@@ -169,12 +169,9 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
         
         unused_ = {value: amplicon_sizes_l.count(value) for value in set(amplicon_sizes_l)}
         unused_ = dict(sorted(unused_.items(), reverse=True))
-        
         used_ = {value: used.count(value) for value in set(used)}
         used_ = dict(sorted(used_.items(), reverse=True))
-        
         return amplicon_count, used_, unused_
-
     else:
         # Ensure the genomic positions are sorted
         # Initialize counters
@@ -225,7 +222,6 @@ def pop_first_item(d, a):
         raise KeyError('pop_first_item(): dictionary is empty')
 
 
-
 def pop_first_item_simple(d):
     if d:
         # Get the first key in the dictionary
@@ -252,6 +248,7 @@ def main(args):
     # based on gene names and offers graphical output options. Users can also choose to
     # include spoligotyping sequencing information. The program outputs results to a 
     # specified folder.
+    start = time.time()
 
     # Displaying the User Settings for Verification:
     print("========== Design: User Settings ==========")
@@ -402,7 +399,6 @@ def main(args):
             if (x not in gff_df_lower['gene_name'].tolist()) and (x not in gff_df_lower['gene_id'].tolist()):
                 raise Exception(f'>> *{x}* is not a valid gene name/id >> Try using gene id/name instead')
         df1 = gff_df_lower[gff_df_lower['gene_id'].isin(specific_gene) | gff_df_lower['gene_name'].isin(specific_gene)]#[['start','end']]
-        
         all_positions = []
         # Iterate through each range and generate positions
         for i, row in df1.iterrows():
@@ -421,15 +417,17 @@ def main(args):
         sublins = []
         dr_types = []
         for x in all_positions:
+            for i, row in df1.iterrows():
+                if x in range(row.start, row.end + 1):
+                    gene_names.append(row['gene_id'])
             if x in full_data['genome_pos'].tolist():
-                gene_names.append(full_data[full_data['genome_pos'] == x]['gene'].values[0])
+                # gene_names.append(full_data[full_data['genome_pos'] == x]['gene'].values[0])
                 changes.append(full_data[full_data['genome_pos'] == x]['change'].values[0])
                 drugs.append(full_data[full_data['genome_pos'] == x]['drugs'].values[0])
                 sublins.append(full_data[full_data['genome_pos'] == x]['sublin'].values[0])
                 dr_types.append(full_data[full_data['genome_pos'] == x]['drtype'].values[0])
-                
             else:
-                gene_names.append(gff_df[(gff_df['start'] <= x) & (gff_df['end'] >= x)]['gene_name'].tolist()[0])
+                # gene_names.append(gff_df[(gff_df['start'] <= x) & (gff_df['end'] >= x)]['gene_name'].tolist()[0])
                 changes.append('-')
                 drugs.append('-')
                 sublins.append('-')
@@ -442,15 +440,16 @@ def main(args):
         specific_gene_data['drtype'] = dr_types
         
         specific_gene_data = specific_gene_data.sort_values(by='genome_pos', ascending=True)
+
         if specific_gene_amplicon == None:
             if segmented:
-                specific_gene_amplicon, used, unused = quick_estimate_amplicons(specific_gene_data, read_size, segmented)
+                specific_gene_amplicon, used, unused = quick_estimate_amplicons(specific_gene_data, read_size, amplicon_sizes_l)
             else:
                 specific_gene_amplicon = quick_estimate_amplicons(specific_gene_data, read_size)
         # def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output=False, padding=150, output_path = '.'):
             # if segmented:
             if specific_gene_amplicon > len(amplicon_sizes_l):
-                raise Exception(f'!! The number of specific amplicons needed{specific_gene_amplicon} is more than the number of amplicon sizes specified, consider increasing the number of amplicon sizes or reducing the number of specific amplicons')
+                raise Exception(f'!! The number of specific amplicons needed - {specific_gene_amplicon} is more than the number of amplicon sizes specified, consider increasing the number of amplicon sizes or reducing the number of specific amplicons')
             print(f'> {specific_gene_amplicon} amplicons assigned for specific gene {specific_gene} coverage')
         if segmented:
             print('>', used)
@@ -458,21 +457,26 @@ def main(args):
             #     read_size, read_num = pop_first_item(amplicon_sizes)
             #     covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)
             #     covered_positions = covered_positions + covered_positions_sp
-                
-            while specific_gene_amplicon > 0:
-                read_size, read_num = pop_first_item(used, specific_gene_amplicon)
-                if read_num < specific_gene_amplicon:
-                    specific_gene_amplicon -= read_num
-                    covered_positions_sp_, covered_ranges_sp_, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
-                    covered_positions_sp =  {**covered_positions_sp, **covered_positions_sp_}
-                    covered_ranges_sp = covered_ranges_sp + covered_ranges_sp_
-                else:
-                    read_num = specific_gene_amplicon
-                    covered_positions_sp_, covered_ranges_sp_, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
-                    covered_positions_sp =  {**covered_positions_sp, **covered_positions_sp_}
-                    covered_ranges_sp = covered_ranges_sp + covered_ranges_sp_
-                    specific_gene_amplicon = 0
-                    
+            for gene in specific_gene_data['gene'].unique(): # for each gene
+
+                specific_gene_data_sub = specific_gene_data[specific_gene_data['gene']==gene]
+                specific_gene_amplicon, used, unused = quick_estimate_amplicons(specific_gene_data_sub, read_size, amplicon_sizes_l)
+                amplicon_sizes_l = [num for num, count in unused.items() for _ in range(count)]
+
+
+                while specific_gene_amplicon > 0:
+                    read_size, read_num = pop_first_item(used, specific_gene_amplicon)
+                    if read_num < specific_gene_amplicon:
+                        specific_gene_amplicon -= read_num
+                        covered_positions_sp_, covered_ranges_sp_, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                        covered_positions_sp =  {**covered_positions_sp, **covered_positions_sp_}
+                        covered_ranges_sp = covered_ranges_sp + covered_ranges_sp_
+                    else:
+                        read_num = specific_gene_amplicon
+                        covered_positions_sp_, covered_ranges_sp_, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                        covered_positions_sp =  {**covered_positions_sp, **covered_positions_sp_}
+                        covered_ranges_sp = covered_ranges_sp + covered_ranges_sp_
+                        specific_gene_amplicon = 0
         
         else:
             covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, specific_gene_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)
@@ -959,6 +963,11 @@ def main(args):
     print(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}.csv')
     print(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed')
     print(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv')
+    
+    end = time.time()
+    print(f'>> Programme Done, design process ran for {round((end - start)/60,1)} min')
+
+    
     return 0
 
 def main_amplicon_no(args):
