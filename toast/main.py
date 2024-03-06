@@ -29,6 +29,8 @@ from toast import plotting1 as p
 # from icecream import ic
 from tabulate import tabulate
 import re
+from itertools import combinations
+
 
 def user_defined(primer_input_file: str, refgenome: str, full_data: pd.DataFrame):
     primer_input = pd.read_csv(primer_input_file)
@@ -103,7 +105,7 @@ def find_closest_number(target, numbers):
 
 def quick_estimate_amplicons(df, amplicon_length, segmented=None):
     """
-    Estimates the number of amplicons needed to cover given genomic positions.
+    Estimates the number of amplicons needed to cover given genomic positions.mplicons assigned for specific gene
     
     Parameters:
     - df: DataFrame with a 'genomic_pos' column representing genomic positions.
@@ -115,22 +117,48 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
     amplicon_count = 0
     current_end = -1  # Initialize to a position before any possible genomic position
     
-    if segmented != None:
+    if segmented != None: 
         amplicon_sizes_l = np.arange(segmented[0], segmented[1]+1, segmented[2]).tolist()*segmented[3]
-        amplicon_sizes_l.sort(reverse=True)
         used = []
-        for gene in df['gene'].unique():
+        numbers = amplicon_sizes_l
+        numbers.sort()
+        for gene in df['gene'].unique(): # for each gene
             sorted_positions = df[df['gene']==gene]['genome_pos'].sort_values().unique()
-            sorted_positions_max = max(sorted_positions)
-            sorted_positions_min = min(sorted_positions)
+
             sorted_positions_size = max(sorted_positions) - min(sorted_positions)
-            while sorted_positions_size > 0:
-                a_number = find_closest_number(sorted_positions_size, amplicon_sizes_l)
-                amplicon_sizes_l.remove(a_number)
-                used.append(a_number)
-                amplicon_count += 1
-                sorted_positions_size -= a_number
+
+            target = sorted_positions_size
+            min_combination = None
+            # Initialize min_sum to a large value
+            min_sum = float('inf')
             
+            for r in range(1, len(numbers) + 1): 
+                for combo in combinations(numbers, r): # look for the best combination of amplicon sizes that exceeds the gene target by the least amount
+                    current_sum = sum(combo)
+                    # If current sum exceeds target, check if it's the new minimum
+                    if current_sum > target:
+                        if current_sum < min_sum:
+                            min_sum = current_sum
+                            min_combination = combo
+                        else:
+                            # Early break if current_sum exceeds min_sum (because it will only increase)
+                            break
+                # Early stopping: if the smallest combination of length r exceeds the target, longer lengths will too
+                if min_sum <= sum(numbers[:r]):
+                    break
+            used.extend(min_combination)
+            for x in min_combination:
+                numbers.remove(x)
+
+
+        
+        unused_ = {value: numbers.count(value) for value in set(numbers)}
+        unused_ = dict(sorted(unused_.items(), reverse=True))
+        
+        used_ = {value: used.count(value) for value in set(used)}
+        used_ = dict(sorted(used_.items(), reverse=True))
+        
+        return len(used), used_, unused_
         # Iterate through genomic positions
             # for pos in sorted_positions:
             #     # Check if current position is outside the range of the current amplicon
@@ -151,7 +179,6 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
         # Ensure the genomic positions are sorted
         # Initialize counters
 
-        
         for gene in df['gene'].unique():
             sorted_positions = df[df['gene']==gene]['genome_pos'].sort_values().unique()
         
@@ -426,6 +453,7 @@ def main(args):
                 raise Exception(f'!! The number of specific amplicons needed{specific_gene_amplicon} is more than the number of amplicon sizes specified, consider increasing the number of amplicon sizes or reducing the number of specific amplicons')
             print(f'> {specific_gene_amplicon} amplicons assigned for specific gene {specific_gene} coverage')
         if segmented:
+            print('>', used)
             # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon
             #     read_size, read_num = pop_first_item(amplicon_sizes)
             #     covered_positions_sp, covered_ranges_sp, specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path=output_path)

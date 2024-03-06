@@ -246,9 +246,10 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
                         
             
             _snps = full_data_cp[(full_data_cp['genome_pos'] >= start_r) & (full_data_cp['genome_pos'] <= end_r)]
-            _snp_pos = _snps[_snps['weight'] != 0]['genome_pos'].tolist()
+            _snp_pos = _snps[_snps['weight'] > 0]['genome_pos'].tolist()
             
-            if (min(_snp_pos) - start_r > 15) and ((end_r - max(_snp_pos))/(min(_snp_pos) - start_r) > 4): # roughly to the the important snps to move to the middle of the amplicon instead of just being at hte start of the amplicon
+            if (len(_snp_pos)>0) and ((end_r - max(_snp_pos))/(min(_snp_pos) - start_r+10) > 10): # roughly to the the important snps to move to the middle of the amplicon instead of just being at hte start of the amplicon
+                # print('-----------adjusted')
                 mid = int(min(_snp_pos) + (max(_snp_pos) - min(_snp_pos))/2)
                 _len = int((end_r - start_r)/2)
                 start_r = mid - _len
@@ -300,14 +301,17 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
                 # print('!this happens')
                 # c = full_data_cp[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r)].shape[0]
                 # c = full_data_cp.shape[0]
-                
+            print( full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'])
                 # full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = full_data_cp['weight'].min()/10/c # set the weight of the covered positions smaller
-            full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = 0.0 # set the weight of the covered positions smaller
+            full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] -= 0.05 # set the weight of the covered positions smaller
+            full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] -= 0.05
             # else:
                 # print('!this happens111')
                 # full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = 0 # set the weight of the covered positions smaller
             # this is when problem comes, there is a difference in range coverage according to the design by weighted sum, however the actual range obtained from designed primers are dont cover the same range, hence the sae primers are repeatedly designed 
             print('Already covered, consider reducing amplicon number...Finding alternative sequences...')
+            print( full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'])
+            
             reduce_amplicon += 1
             accepted_primers = accepted_primers.iloc[:-1]
             # print('***')
