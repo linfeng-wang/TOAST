@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 # from collections import Counter
 # from tqdm import tqdm
-import time
 # from Bio.SeqUtils import MeltingTemp
 # from Bio import SeqIO
 from plotly import graph_objects as go
@@ -23,7 +22,6 @@ from toast import primer_selection
 # import argparse
 # from functools import reduce
 import os
-import time
 # import plotting1
 # reload(plotting1)
 
@@ -177,7 +175,6 @@ def nucleotide_to_iupac(nucleotides):
 # ideal_range = []
 #place_amplicon function
 def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, graphic_output=False, padding=150, output_path = '.', check_snp = True, start_end_r=None):
-    start = time.time()
     # print( read_number, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, graphic_output, padding, output_path)
     window_size = read_size
     run = 0
@@ -333,8 +330,6 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
     print('====================')
         # print(f'Consider reducing number of amplicons by: {reduce_amplicon}')
         # print('====================')
-    end = time.time()
-    print(f'>> Design process ran for {round((end - start)/60,1)} min')
 
     # return covered_positions, covered_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_
     return covered_positions, designed_ranges, full_data_cp, primer_pool, accepted_primers, no_primer_

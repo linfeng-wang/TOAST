@@ -601,11 +601,13 @@ def main(args):
     threshold = 0.001
     all_snps = pd.read_csv(args.all_snps, sep = '\t', header = None)
     all_snps.drop_duplicates(inplace=True)
+    accepted_primers = accepted_primers[accepted_primers['pLeft_Sequences'] != 0]
     for i, row in accepted_primers.iterrows():
         # print(row['pLeft_Sequences'])
         # print(row['pRight_Sequences'])
         #left primer
         primer_seq = ''
+        print('!!', row['pLeft_Sequences'])
         for x,y in zip(range(row['pLeft_coord'], row['pLeft_coord']+len(row['pLeft_Sequences'])), row['pLeft_Sequences']):
             if (all_snps[all_snps[0] == x][[1,2]].shape[0] > 0) and (all_snps[all_snps[0] == x][[3]].values.astype('float').item()>= threshold):
                 alleles = ''.join(all_snps[all_snps[0] == x][[1,2]].values[0])
