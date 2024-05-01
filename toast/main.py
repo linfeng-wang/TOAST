@@ -607,7 +607,7 @@ def main(args):
         # print(row['pRight_Sequences'])
         #left primer
         primer_seq = ''
-        print('!!', row['pLeft_Sequences'])
+        # print('!!', row['pLeft_Sequences'])
         for x,y in zip(range(row['pLeft_coord'], row['pLeft_coord']+len(row['pLeft_Sequences'])), row['pLeft_Sequences']):
             if (all_snps[all_snps[0] == x][[1,2]].shape[0] > 0) and (all_snps[all_snps[0] == x][[3]].values.astype('float').item()>= threshold):
                 alleles = ''.join(all_snps[all_snps[0] == x][[1,2]].values[0])
@@ -880,7 +880,6 @@ def main(args):
 
             gene_coverage_df = combined_series.reset_index().fillna(0)
             gene_coverage_df.columns = ['Gene', 'SNP_coverage']
-            
             print(tabulate(gene_coverage_df, headers='keys', tablefmt='grid'))
     
     if accepted_primers.shape[0] == 0:
@@ -959,17 +958,36 @@ def main(args):
     
     out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False)
     
+    #adding gene name in front of amplicon id
+    region_ = pd.read_csv('db/region.bed', sep='\t', header=None)
+    gene_ = []
+    for i, row in accepted_primers.iterrows():
+        for x, row_ in region_.iterrows():
+            _ = False
+            if row['pLeft_coord'] in range(row_[1], row[2]+1) or row['pRight_coord'] in range(row_[1], row[2]+1):
+                _ = row_[3]
+                break
+            if _:
+                gene_.append(_)
+            else:
+                gene_.append('-')
+                
+    accepted_primers['Amplicon_ID'] =  gene_ + '-' + accepted_primers['Amplicon_ID']
+    accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
+
     print('-'*30)
-    print('Primer design output files:')
+    print('Primer design output files produced:')
     print(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv')
     print(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}.csv')
     print(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed')
     print(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv')
+    print(f'{op}/Gene_coverage-{read_number}-{read_size}.csv')
     
+    gene_coverage_df.to_csv(f'{op}/Gene_coverage-{read_number}-{read_size}.csv')
+
     end = time.time()
     print(f'>> Programme Done, design process ran for {round((end - start)/60,1)} min')
 
-    
     return 0
 
 def main_amplicon_no(args):

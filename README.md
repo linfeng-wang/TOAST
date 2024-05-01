@@ -89,6 +89,19 @@ Get to the code directory
 
 
 
+## Ouput file format
+
+<filetype>-<number of total amplicon designed>-<minimum amplicon size>-<maximum amplicon size>-<step size>-<number of amplicon for each size>
+
+### 5 different files are produced
+- Primer_design-accepted_primers: All detailed information about the designed amplicons
+- Amplicon_importance: Number of SNP coverd by each amplicon
+- Amplicon_mapped: bed file can be used to visualised the amplicon on genome using tools such as igv
+- SNP_inclusion: shows SNP covered
+- Gene_covereage: show percentage of each gene covered
+
+
+Test runs:
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 20
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 30
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 40
