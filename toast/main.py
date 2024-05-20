@@ -959,20 +959,22 @@ def main(args):
     out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False)
     
     #adding gene name in front of amplicon id
-    region_ = pd.read_csv('db/region.bed', sep='\t', header=None)
+    db = '/'.join(__file__.split('/')[:-1]) + '/db'
+    region_ = pd.read_csv(f'{db}/regions.bed', sep='\t', header=None)
     gene_ = []
     for i, row in accepted_primers.iterrows():
         for x, row_ in region_.iterrows():
             _ = False
             if row['pLeft_coord'] in range(row_[1], row[2]+1) or row['pRight_coord'] in range(row_[1], row[2]+1):
                 _ = row_[3]
-                break
-            if _:
-                gene_.append(_)
-            else:
-                gene_.append('-')
-                
-    accepted_primers['Amplicon_ID'] =  gene_ + '-' + accepted_primers['Amplicon_ID']
+                if _:
+                    gene_.append(_)
+                else:
+                    gene_.append('-')
+                continue
+
+    accepted_primers['Amplicon_ID'] = [str(g) + '-' + str(a) for g, a in zip(gene_, accepted_primers['Amplicon_ID'])]
+
     accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
 
     print('-'*30)
