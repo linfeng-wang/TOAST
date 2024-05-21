@@ -577,26 +577,64 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
             else:
                 pass
                 # print(f'Primer pair #{i} has alternative binding site')
+#######################
+            # if too_far == False:
+            #     for x in primer_pool: # heterodimer check
+            #         if check_heterodimer(x, complement_sequence(row['pLeft_Sequences'])) == False:
+            #             left_ok = False
+            #             hetero = True
+            #         if check_heterodimer(x, row['pRight_Sequences']) == False:
+            #             right_ok = False
+            #             hetero = True
 
-            if too_far == False:
-                for x in primer_pool: # heterodimer check
-                    if check_heterodimer(x, complement_sequence(row['pLeft_Sequences'])) == False:
-                        left_ok = False
-                        hetero = True
-                    if check_heterodimer(x, row['pRight_Sequences']) == False:
-                        right_ok = False
-                        hetero = True
-
-                if (not left_ok or not right_ok) and i != df.shape[0]-1:
-                    print(f'Primer pair #{i+1} has homodimer')
-                    continue  
-                else:
-                    pass
-            else:
-                pass
+            #     if (not left_ok or not right_ok) and i != df.shape[0]-1:
+            #         print(f'Primer pair #{i+1} has homodimer')
+            #         continue  
+            #     else:
+            #         pass
+            # else:
+            #     pass
+#######################
+            def check_heterodimer(seq1, seq2, length=5):
+                """Checks if the last 'length' bases of seq1 are found anywhere in seq2."""
+                # Get the last 'length' bases of seq1
+                last_bases_seq1 = seq1[-length:]
+                last_bases_seq1_com = complement_sequence(last_bases_seq1)
+                last_bases_seq1_rev_com = last_bases_seq1_com[::-1]
+                # Check if these bases are found anywhere in seq2
+                is_binding_com = last_bases_seq1_com in seq2
+                is_binding_rev_com = last_bases_seq1_rev_com in seq2
+                is_binding = is_binding_com or is_binding_rev_com
+                
+                if is_binding == False:
+                    last_bases_seq1 = seq2[-length:]
+                    last_bases_seq1_com = complement_sequence(last_bases_seq1)
+                    last_bases_seq1_rev_com = last_bases_seq1_com[::-1]
+                    # Check if these bases are found anywhere in seq2
+                    is_binding_com = last_bases_seq1_com in seq2
+                    is_binding_rev_com = last_bases_seq1_rev_com in seq2
+                    is_binding = is_binding_com or is_binding_rev_com
+                return is_binding
             
-            if too_far or hetero:
+            for x in primer_pool: # heterodimer check
+                if check_heterodimer(x, row['pLeft_Sequences']) == False:
+                    left_ok = False
+                    hetero = False
+                else:
+                    hetero = True
+                if check_heterodimer(x, row['pRight_Sequences']) == False:
+                    right_ok = False
+                    hetero = False
+                else:
+                    hetero = True
+##############################
+            
+            if too_far:
+                print('Primer binding site too far from target region')
                 pass
+            elif hetero:
+                print(f'Primer pair #{i+1} has homodimer')
+                continue
             else:  
                 left_ok = not has_multiple_binding_sites(row['pLeft_Sequences'], genome)
                 right_ok = not has_multiple_binding_sites(reverse_complement_sequence(row['pRight_Sequences']), genome)
@@ -610,7 +648,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
             if left_ok == True and right_ok == True:
                 row_df = pd.DataFrame(row).T
                 # primer_pool.extend(row[['pLeft_Sequences','pRight_Sequences']].values.tolist())
-                primer_pool.append(complement_sequence(row['pLeft_Sequences']))
+                primer_pool.append(row['pLeft_Sequences'])
                 primer_pool.append(row['pRight_Sequences'])
                 # print(row)
                 accepted_primers = pd.concat([accepted_primers, row_df],axis=0)
