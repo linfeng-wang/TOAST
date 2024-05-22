@@ -108,7 +108,7 @@ def updown_stream_primer_range(start_pos, end_pos, dis_range=0):
 # primer2 = "CGATCGATCGATCGATCGAT"
 # check_heterodimer(primer1, primer2)
 
-def check_heterodimer(seq1, seq2, length=5):
+def check_heterodimer(seq1, seq2, global_arg = None, length=5):
     """Checks if the last 'length' bases of seq1 are found anywhere in seq2."""
     # Get the last 'length' bases of seq1
     last_bases_seq1 = seq1[-length:]
@@ -127,8 +127,12 @@ def check_heterodimer(seq1, seq2, length=5):
         is_binding_com = last_bases_seq1_com in seq2
         is_binding_rev_com = last_bases_seq1_rev_com in seq2
         is_binding = is_binding_com or is_binding_rev_com
+    
+    if global_arg == None:
+        primer3_hetero = calc_heterodimer(seq1, seq2,  mv_conc=50, dv_conc=1.5, dntp_conc=0.8, dna_conc=50, temp_c=37, max_loop=30, output_structure=False)
+    else:
+        primer3_hetero = calc_heterodimer(seq1, seq2,  mv_conc=global_arg['PRIMER_SALT_MONOVALENT'], dv_conc=global_arg["PRIMER_SALT_DIVALENT"], dntp_conc=global_arg["PRIMER_DNTP_CONC"], dna_conc=global_arg['PRIMER_DNA_CONC'], temp_c=global_arg["PRIMER_ANNEALING_TEMP"])
         
-    primer3_hetero = calc_heterodimer(seq1, seq2)
     primer3_hetero_result = primer3_hetero.tm >= 50 and primer3_hetero.dg <= -9000 
     
     is_binding = is_binding or primer3_hetero_result
@@ -623,12 +627,12 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
 
             
             for x in primer_pool: # heterodimer check
-                if check_heterodimer(x, row['pLeft_Sequences']) == False:
+                if check_heterodimer(x, row['pLeft_Sequences'], global_args_dict) == False:
                     left_ok = False
                     hetero = False
                 else:
                     hetero = True
-                if check_heterodimer(x, row['pRight_Sequences']) == False:
+                if check_heterodimer(x, row['pRight_Sequences'], global_args_dict) == False:
                     right_ok = False
                     hetero = False
                 else:
