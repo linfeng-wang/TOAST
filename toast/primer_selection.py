@@ -91,23 +91,48 @@ def updown_stream_primer_range(start_pos, end_pos, dis_range=0):
     return up_stream, down_stream
 
 # %%
-def check_heterodimer(primer1, primer2):
-    # Calculate melting temperature (Tm) for each primer
-    # tm1 = MeltingTemp.Tm_NN(primer1)
-    # tm2 = MeltingTemp.Tm_NN(primer2)
+# def check_heterodimer(primer1, primer2):
+#     # Calculate melting temperature (Tm) for each primer
+#     # tm1 = MeltingTemp.Tm_NN(primer1)
+#     # tm2 = MeltingTemp.Tm_NN(primer2)
 
-    # Check for heterodimer formation between the two primers
-    heterodimer = calc_heterodimer(primer1, primer2)
-    # Print the results
-    # print("Primer 1 Tm:", tm1)
-    # print("Primer 2 Tm:", tm2)
-    # print("Heterodimer:", heterodimer.structure_found)
-    return heterodimer.structure_found
+#     # Check for heterodimer formation between the two primers
+#     heterodimer = calc_heterodimer(primer1, primer2)
+#     # Print the results
+#     # print("Primer 1 Tm:", tm1)
+#     # print("Primer 2 Tm:", tm2)
+#     # print("Heterodimer:", heterodimer.structure_found)
+#     return heterodimer.structure_found
 # Example usage
 # primer1 = "AGTCATCGATCGATCGATCG"
 # primer2 = "CGATCGATCGATCGATCGAT"
 # check_heterodimer(primer1, primer2)
 
+def check_heterodimer(seq1, seq2, length=5):
+    """Checks if the last 'length' bases of seq1 are found anywhere in seq2."""
+    # Get the last 'length' bases of seq1
+    last_bases_seq1 = seq1[-length:]
+    last_bases_seq1_com = complement_sequence(last_bases_seq1)
+    last_bases_seq1_rev_com = last_bases_seq1_com[::-1]
+    # Check if these bases are found anywhere in seq2
+    is_binding_com = last_bases_seq1_com in seq2
+    is_binding_rev_com = last_bases_seq1_rev_com in seq2
+    is_binding = is_binding_com or is_binding_rev_com
+    
+    if is_binding == False:
+        last_bases_seq1 = seq2[-length:]
+        last_bases_seq1_com = complement_sequence(last_bases_seq1)
+        last_bases_seq1_rev_com = last_bases_seq1_com[::-1]
+        # Check if these bases are found anywhere in seq2
+        is_binding_com = last_bases_seq1_com in seq2
+        is_binding_rev_com = last_bases_seq1_rev_com in seq2
+        is_binding = is_binding_com or is_binding_rev_com
+        
+    primer3_hetero = calc_heterodimer(seq1, seq2)
+    primer3_hetero_result = primer3_hetero.tm >= 50 and primer3_hetero.dg <= -9000 
+    
+    is_binding = is_binding or primer3_hetero_result
+    return is_binding
 #%%
 # test = extract_sequence_from_fasta(1000, 2300)
 
@@ -595,26 +620,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
             # else:
             #     pass
 #######################
-            def check_heterodimer(seq1, seq2, length=5):
-                """Checks if the last 'length' bases of seq1 are found anywhere in seq2."""
-                # Get the last 'length' bases of seq1
-                last_bases_seq1 = seq1[-length:]
-                last_bases_seq1_com = complement_sequence(last_bases_seq1)
-                last_bases_seq1_rev_com = last_bases_seq1_com[::-1]
-                # Check if these bases are found anywhere in seq2
-                is_binding_com = last_bases_seq1_com in seq2
-                is_binding_rev_com = last_bases_seq1_rev_com in seq2
-                is_binding = is_binding_com or is_binding_rev_com
-                
-                if is_binding == False:
-                    last_bases_seq1 = seq2[-length:]
-                    last_bases_seq1_com = complement_sequence(last_bases_seq1)
-                    last_bases_seq1_rev_com = last_bases_seq1_com[::-1]
-                    # Check if these bases are found anywhere in seq2
-                    is_binding_com = last_bases_seq1_com in seq2
-                    is_binding_rev_com = last_bases_seq1_rev_com in seq2
-                    is_binding = is_binding_com or is_binding_rev_com
-                return is_binding
+
             
             for x in primer_pool: # heterodimer check
                 if check_heterodimer(x, row['pLeft_Sequences']) == False:
@@ -631,9 +637,9 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
             
             if too_far:
                 print('Primer binding site too far from target region')
-                pass
+                continue
             elif hetero:
-                print(f'Primer pair #{i+1} has homodimer')
+                print(f'Primer pair #{i+1} has heterodimer')
                 continue
             else:  
                 left_ok = not has_multiple_binding_sites(row['pLeft_Sequences'], genome)

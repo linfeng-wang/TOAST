@@ -129,7 +129,7 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
             sorted_positions_size = max(sorted_positions) - min(sorted_positions)
             # print('sorted_positions_size:', sorted_positions_size)
             target = sorted_positions_size
-            min_combination = None
+            min_combination = []
             # Initialize min_sum to a large value
             min_sum = float('inf')
             
@@ -251,35 +251,35 @@ def main(args):
     start = time.time()
 
     # Displaying the User Settings for Verification:
-    print("========== Design: User Settings ==========")
-    print(f"Amplicon Size: {args.amplicon_size}")
-    print(f"SNP Priority: {args.snp_priority}")
-    print(f"Reference Genome: {args.reference_genome}")
-    print(f"gff file: {args.gff3_file}")
-    print(f"User defined primers: {args.user_defined_primers}")
+    print("============= Design: User Settings =============")
+    print(f"- Amplicon Size: {args.amplicon_size}")
+    print(f"- SNP Priority: {args.snp_priority}")
+    print(f"- Reference Genome: {args.reference_genome}")
+    print(f"- gff file: {args.gff3_file}")
+    print(f"- User defined primers: {args.user_defined_primers}")
     if args.padding_size == None:
-        print(f"Padding_size: {int(args.amplicon_size/6)}")
+        print(f"- Padding_size: {int(args.amplicon_size/6)}")
         # print(f"Padding_size: {args.amplicon_size/8}")
     else:
-        print(f"Padding_size: {args.padding_size}")
+        print(f"- Padding_size: {args.padding_size}")
         
     if args.segmented_amplicon_size != None:
-        print(f"Segmented Amplicon Size [min, max, step, count of each step]: [{args.segmented_amplicon_size}]")
+        print(f"- Segmented Amplicon Size [min, max, step, count of each step]: [{args.segmented_amplicon_size}]")
     if args.specific_amplicon_no != None:
-        print(f"Specific Amplicon Number: {args.specific_amplicon_no}")
+        print(f"- Specific Amplicon Number: {args.specific_amplicon_no}")
     if args.specific_amplicon_gene != '':
-        print(f"Specific Amplicon Gene: {args.specific_amplicon_gene}")
+        print(f"- Specific Amplicon Gene: {args.specific_amplicon_gene}")
     if args.segmented_amplicon_size != None:
-        print(f"Non-specific Amplicon Number: unused")
+        print(f"- Non-specific Amplicon Number: unused")
     else:
-        print(f"Non-specific Amplicon Number: {args.non_specific_amplicon_no}")
-    print(f'Amplicon search setting: {args.global_args}')
-    print(f"Graphic Option: {args.graphic_option}")
-    print(f"Spoligo Sequencing: {args.spoligo_coverage}")
+        print(f"- Non-specific Amplicon Number: {args.non_specific_amplicon_no}")
+    print(f"- Amplicon search setting: {args.global_args}")
+    print(f"- Graphic Option: {args.graphic_option}")
+    print(f"- Spoligo Sequencing: {args.spoligo_coverage}")
     if args.spoligo_coverage:
-        print(f"Spoligo Sequencing File: {args.spoligo_sequencing_file}")
-    print(f"Output Folder Path: {args.output_folder_path}")
-    
+        print(f"- Spoligo Sequencing File: {args.spoligo_sequencing_file}")
+    print(f"- Output Folder Path: {args.output_folder_path}")
+    print(f"- Mutiplex grouping: {args.multiplexing}")
     print("=================================================")
 
     gene_names = [
@@ -765,11 +765,51 @@ def main(args):
 
     accepted_primers['Designed_size'] =  list(map(len_calc, accepted_primers['Designed_ranges']))
     
+    # GETTING MULTIPLEX GROUPING
+    if args.multiplexing:
+        primers_df = accepted_primers.copy()
+        # Sort the DataFrame by location
+        primers_df = primers_df.sort_values(by='pLeft_coord').reset_index(drop=True)
+        # Initialize variables
+        multiplex_groups = []
+        group_ind_list = []
+
+        def can_add_to_group(primer, group, range_size=1000, product_range=50):
+            # Check location constraint
+            if any(abs(primer['pLeft_coord'] - p['pLeft_coord']) < range_size for p in group):
+                return False
+            # Check product size constraint
+            if any(abs(primer['Product_size'] - p['Product_size']) < product_range for p in group):
+                return False
+            return True
+
+        # Iterate over the primers and assign them to groups
+        for idx, primer in primers_df.iterrows():
+            added_to_group = False
+            for group_idx, group in enumerate(multiplex_groups):
+                if can_add_to_group(primer, group):
+                    multiplex_groups[group_idx].append(primer)
+                    group_ind_list.append(group_idx + 1)
+                    added_to_group = True
+                    break
+            if not added_to_group:
+                multiplex_groups.append([primer])
+                group_ind_list.append(len(multiplex_groups))
+
+        _ = primers_df[['Amplicon_ID']].copy()
+        _.loc[:,'Group'] = group_ind_list
+        _.loc[:,'Amplicon_ID'] = pd.Categorical(_['Amplicon_ID'], categories=accepted_primers['Amplicon_ID'].tolist(), ordered=True)
+        # Sort the DataFrame by the 'Name' column
+        _sorted = _.sort_values('Amplicon_ID')
+        # Reset index if needed
+        _sorted = _sorted.reset_index(drop=True)
+        merged_df = pd.merge(accepted_primers, _, on='Amplicon_ID')
+        accepted_primers = merged_df.copy()
+    
     op = f'{output_path}/Amplicon_design_output'
     os.makedirs(op, exist_ok=True) #output path
     accepted_primers.drop(columns=['index'], inplace=True)
     accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
-
 
     # primer_pos = accepted_primers[['pLeft_coord','pRight_coord']].values
     # columns = ['pLeft_ID', 'pRight_ID', 'pLeft_coord', 'pRight_coord', 'SNP_inclusion']
@@ -829,16 +869,13 @@ def main(args):
         'Amplicon_ID': amplicon_id_series
     })
 
-
     primer_inclusion.to_csv(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv',index=False)
 
-    
     df1 = primer_inclusion['Amplicon_ID'].value_counts().to_frame()
     df1.insert(0, 'Amplicon_id', df1.index)
     df1.columns = ["Amplicon_ID", "Num_SNP_covered"]
 
     df1.to_csv(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv',index=False)
-
 
     if specific_gene_amplicon>0 or non_specific_amplicon>0:
         # amp_snp = pd.DataFrame(columns=full_data.columns)
@@ -884,7 +921,6 @@ def main(args):
     
     if accepted_primers.shape[0] == 0:
         raise Exception('No primers designed')
-
 
     # for i, x in accepted_primers.iterrows():
     #     # designed_range_name = f"Designed-A{i+1}-{x['pLeft_ID'].split('-')[1]}
@@ -965,8 +1001,8 @@ def main(args):
     for i, row in accepted_primers.iterrows():
         for x, row_ in region_.iterrows():
             _ = False
-            if row['pLeft_coord'] in range(row_[1], row[2]+1) or row['pRight_coord'] in range(row_[1], row[2]+1):
-                _ = row_[3]
+            if row['pLeft_coord'] in range(row_.iloc[1], row.iloc[2]+1) or row['pRight_coord'] in range(row_.iloc[1], row.iloc[2]+1):
+                _ = row_.iloc[3]
                 if _:
                     gene_.append(_)
                 else:
@@ -977,7 +1013,7 @@ def main(args):
 
     accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
 
-    print('-'*30)
+    print('-'*37)
     print('Primer design output files produced:')
     print(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv')
     print(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}.csv')
@@ -1219,6 +1255,7 @@ def cli():
     setting.add_argument('-g','--graphic_option', action='store_true', help = 'Output graphic on amplicon coverage to visualise the running of the algorithm', default = False)
     setting.add_argument('-sc','--spoligo_coverage', action='store_true', help = 'Whether to amplify Spoligotype', default = False)
     setting.add_argument('-set','--global_args', help = 'Amplicon search setting', default = f'{db}/default_primer_design_setting.json')
+    setting.add_argument('-mg','--multiplexing', action='store_true', help = 'Whether include multiplex grouping', default = True)
 
     # out
     output=parser_sub.add_argument_group("Output options")

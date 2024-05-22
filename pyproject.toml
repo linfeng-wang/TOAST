@@ -12,3 +12,4 @@ dynamic = ["version", "description"]
 
 [project.scripts]
 toast = "toast.main:cli"
+
