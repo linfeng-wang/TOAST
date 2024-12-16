@@ -85,10 +85,6 @@ Get to the code directory
 
 
 
-
-
-
-
 ## Ouput file format
 
 <filetype>-<number of total amplicon designed>-<minimum amplicon size>-<maximum amplicon size>-<step size>-<number of amplicon for each size>
@@ -101,6 +97,28 @@ Get to the code directory
 - Gene_covereage: show percentage of each gene covered
 
 
+
+**Specific mutation (Mutation Priority)file format:**
+Essentially all you need would be the genome position (genome_pos). Other columns are needed but you could used imputed values like below if unknown.
+The complete example Mutation priority csv can be found in *mutation_priority_example.csv*
+
+| sample_id | **genome_pos** | gene   | change   | freq | type | sublin | drtype | drugs | weight |
+|-----------|------------|--------|----------|------|------|--------|--------|-------|--------|
+| sample_1  | 321168     | gene_1 | change_1 | 1    | -    | -      | -      | -     | 1      |
+| sample_2  | 551767     | gene_2 | change_2 | 1    | -    | -      | -      | -     | 1      |
+| sample_3  | 1017188    | gene_3 | change_3 | 1    | -    | -      | -      | -     | 1      |
+| sample_4  | 1119158    | gene_4 | change_4 | 1    | -    | -      | -      | -     | 1      |
+| sample_5  | 1119347    | gene_5 | change_5 | 1    | -    | -      | -      | -     | 1      |
+| sample_6  | 1414872    | gene_6 | change_6 | 1    | -    | -      | -      | -     | 1      |
+
+A script (*mutation_priority_gen.py*) can also be found to generate a file like the above:
+
+example usage: 
+```
+python mutation_priority_gen.py --positions "322168,553767,1077188" --output <output_path.csv>
+```
+
+
 Test runs:
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 20
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 30
@@ -110,7 +128,6 @@ toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_outpu
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 600,800,50,2 -sg Rv0678
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678,katG
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 400,800,50,1 -sg Rv0678,katG
-
 
 
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_Dario -a 600 -nn 19
