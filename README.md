@@ -12,6 +12,9 @@ Clone repository
 Install Python package (be in the root directory of the repository)
 ```pip install .```
 
+
+It can also be installed through pip at https://pypi.org/project/toast-amplicon/
+
 ### Workflow
 #### Before running the tool
 *Decide on SNP priority by modifying the SNP priority file (variant.csv)
@@ -42,7 +45,7 @@ Get to the code directory
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 25
 
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/output -a 1000 -nn 4 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv
-    ```
+
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/output -a 1000 -nn 26
 
     toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpsL -nn 0 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv
@@ -118,6 +121,12 @@ example usage:
 ```
 python mutation_priority_gen.py --positions "322168,553767,1077188" --output <output_path.csv>
 ```
+
+
+
+
+
+
 
 Test runs:
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 20

@@ -20,7 +20,7 @@ dependencies = ["pandas",
 ]
 
 [project.urls]
-Documentation = "https://github.com/linfeng-wang/TOAST"
+Documentation = "https://flit.pypa.io"
 Source = "https://github.com/linfeng-wang/TOAST"
 
 
