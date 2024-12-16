@@ -261,7 +261,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         if end_r > genome_size(ref_genome):
             end_r = genome_size(ref_genome)-padding
         designed_ranges.append([start_r, end_r])
- 
+
         # ideal_range.append([start_r, end_r])
 
         seq_template, low_b, high_b = extraction_prep([start_r, end_r], ref_size = genome_size(ref_genome), ref_genome=ref_genome, padding=padding)
@@ -282,6 +282,7 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
         # c = full_data_cp[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p)].shape[0]
         # c = full_data_cp.shape[0]
         # full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = full_data_cp['weight'].min()/10/c  # set the weight of the covered positions smaller
+        full_data_cp['weight'] = full_data_cp['weight'].astype(float)
         full_data_cp.loc[(full_data_cp['genome_pos']>=start_r) & (full_data_cp['genome_pos']<=end_r), 'weight'] = full_data_cp['weight'].min()/2 # set the weight of the covered positions smaller
         full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = -0.05 # set the weight of the covered positions smaller
         # full_data_cp.loc[(full_data_cp['genome_pos']>=start_p) & (full_data_cp['genome_pos']<=end_p), 'weight'] = 0 # set the weight of the covered positions smaller

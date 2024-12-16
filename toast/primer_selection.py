@@ -369,8 +369,35 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
             },
             global_args=global_args_dict)
     except:
-        print('!!!Primer extraction error')
-        
+        print('!!!Primer extraction error, trying with increased padding x2')
+        padding = int(padding*2)
+        size_range = f'{len(sequence)-padding*2}-{len(sequence)}'
+        with open(global_args, 'r') as file:
+            global_args_dict = json.load(file)
+            global_args_dict['PRIMER_PRODUCT_SIZE_RANGE'] = size_range
+            
+        genome = extract_sequence_from_fasta(0, genome_size(ref_genome),padding=0, fasta_file=ref_genome)
+        no_primer = []
+        ok_region_list = [0, padding,len(sequence)-padding,padding]
+        # size_range = f'{len(sequence)-350}-{len(sequence)-250}'
+        # print('size_range:',size_range)
+        # print('SEQUENCE_INCLUDED_REGION:', [padding-10,len(sequence)-padding+10],)
+        results = bindings.design_primers(
+            seq_args={
+                'SEQUENCE_ID': 'Amplicon',
+                'SEQUENCE_TEMPLATE': sequence,
+                # 'SEQUENCE_INCLUDED_REGION': [padding-20,len(sequence)-padding+20],
+                # 'SEQUENCE_INCLUDED_REGION': [padding,len(sequence)-(padding*2)],
+                # 'SEQUENCE_PRIMER_PAIR_OK_REGION_LIST': ok_region_list
+                'SEQUENCE_PRIMER_PAIR_OK_REGION_LIST': f'{ok_region_list[0]},{ok_region_list[1]},{ok_region_list[2]},{ok_region_list[3]}',
+
+                # 'SEQUENCE_INCLUDED_REGION': [(0,len(sequence)),],
+                # 'SEQUENCE_INCLUDED_REGION': [(0,padding),(len(sequence)-padding,len(sequence))],
+                # 'SEQUENCE_EXCLUDED_REGION':[(padding,len(sequence)-padding)]
+                'SEQUENCE_TARGET': [padding,len(sequence)-padding*2]
+            },
+            global_args=global_args_dict)
+
     # print(results)
     
     pLeft_ID = []

@@ -12,4 +12,5 @@ variants_full.csv
 *.txt
 *.csi
 *.trees
+*.csv
 # find . -type f -size +99M

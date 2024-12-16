@@ -30,7 +30,7 @@ Get to the code directory
    ```
     python main.py amplicon_no -a 400 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -g
 
-    toast amplicon_no -a 400 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -g
+    toast amplicon_no -a 800 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -g
    ```
 2. Run amplicon design (*design* function)
     - Example: 
@@ -108,5 +108,19 @@ toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_outpu
 
 
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 600,800,50,2 -sg Rv0678
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678 katG
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 400,800,50,1 -sg Rv0678 katG
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678,katG
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 400,800,50,1 -sg Rv0678,katG
+
+
+
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_Dario -a 600 -nn 19
+
+toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario -nn 19 -a 300 -p 100
+
+toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_1.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_1 -nn 6 -a 300 -p 100
+toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_2.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_2 -nn 6 -a 300 -p 100
+toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_3.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_3 -nn 6 -a 300 -p 100
+
+
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678,katG
+

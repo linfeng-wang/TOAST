@@ -206,6 +206,7 @@ def extract_gff3(gff3_file_path):
 
     # Rename columns for clarity
     genes_info_df.columns = ['gene_id', 'gene_name', 'chr', 'start', 'end']
+    genes_info_df[genes_info_df['gene_name'] != 'protein_coding']
     return genes_info_df
 
 def pop_first_item(d, a):
@@ -307,6 +308,7 @@ def main(args):
     ]
     global_args = args.global_args
     read_size = args.amplicon_size
+    segmented = args.segmented_amplicon_size
     # full data - priority file with weights&frequency for each snp
     full_data= pd.read_csv(args.snp_priority)
     full_data = full_data[~full_data['drugs'].isna()]
@@ -383,10 +385,9 @@ def main(args):
         amplicon_sizes = dict(sorted(amplicon_sizes.items(), reverse=True))
         print('==Segmented amplicon size:', amplicon_sizes)
         
-
+    gff_df = extract_gff3(args.gff3_file)
     if len(specific_gene)>0:
         print('=====Specific amplicon=====')
-        gff_df = extract_gff3(args.gff3_file)
         # gff_df_lower = gff_df.applymap(lambda x: x.lower() if isinstance(x, str) else x)
         gff_df_lower = gff_df.copy()
         for col in gff_df_lower.columns:
@@ -809,7 +810,7 @@ def main(args):
     op = f'{output_path}/Amplicon_design_output'
     os.makedirs(op, exist_ok=True) #output path
     accepted_primers.drop(columns=['index'], inplace=True)
-    accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
+    # accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
 
     # primer_pos = accepted_primers[['pLeft_coord','pRight_coord']].values
     # columns = ['pLeft_ID', 'pRight_ID', 'pLeft_coord', 'pRight_coord', 'SNP_inclusion']
@@ -869,7 +870,7 @@ def main(args):
         'Amplicon_ID': amplicon_id_series
     })
 
-    primer_inclusion.to_csv(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv',index=False)
+    primer_inclusion.to_csv(f'{op}/Mutation_inclusion-{read_number}-{read_size}.csv',index=False)
 
     df1 = primer_inclusion['Amplicon_ID'].value_counts().to_frame()
     df1.insert(0, 'Amplicon_id', df1.index)
@@ -887,6 +888,8 @@ def main(args):
             dtype = str(full_data[column].dtype)
             # Add the column and its data type to the dictionary
             dtypes[column] = dtype
+        full_data_ = full_data.copy()
+        full_data_.drop_duplicates(subset='change', inplace=True)
         amp_snp = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
 
         _len = accepted_primers[accepted_primers['Amplicon_type']!= 'Spoligotype'].shape[0]
@@ -895,15 +898,15 @@ def main(args):
         else:
             # for (x,y) in covered_ranges[:_len]:
             for x,y in zip(accepted_primers['pLeft_coord'].tolist(), accepted_primers['pRight_coord'].tolist()):
-                condition = (full_data['genome_pos'] >= x) & (full_data['genome_pos'] <= y)
-                filtered_data = full_data[condition]
+                condition = (full_data_['genome_pos'] >= x) & (full_data_['genome_pos'] <= y)
+                filtered_data = full_data_[condition]
                 # Drop columns that are completely empty or all NA from filtered_data
                 filtered_data = filtered_data.dropna(axis=1, how='all')
                 amp_snp = pd.concat([amp_snp, filtered_data])
             
             amp_snp = amp_snp.drop_duplicates()
             
-            full_data_gene = full_data['gene'].value_counts()
+            full_data_gene = full_data_['gene'].value_counts()
             amp_snp_aligned = amp_snp['gene'].value_counts().reindex(full_data_gene.index).fillna(0)
 
             # Calculate the ratio and format as string
@@ -995,27 +998,24 @@ def main(args):
     out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False)
     
     #adding gene name in front of amplicon id
-    db = '/'.join(__file__.split('/')[:-1]) + '/db'
-    region_ = pd.read_csv(f'{db}/regions.bed', sep='\t', header=None)
     gene_ = []
-    for i, row in accepted_primers.iterrows():
-        for x, row_ in region_.iterrows():
-            _ = False
-            if row['pLeft_coord'] in range(row_.iloc[1], row.iloc[2]+1) or row['pRight_coord'] in range(row_.iloc[1], row.iloc[2]+1):
-                _ = row_.iloc[3]
-                if _:
-                    gene_.append(_)
-                else:
-                    gene_.append('-')
-                continue
 
+    for i, row in accepted_primers.iterrows():
+        _ = False
+        _ = gff_df[gff_df['start'] < row['pRight_coord']]
+        _ = _[_['end'] > row['pLeft_coord']].iloc[:1]
+        if _.shape[0]>0:
+            gene_.append(_['gene_name'].values[0])
+        else:
+            gene_.append('_')
+            
     accepted_primers['Amplicon_ID'] = [str(g) + '-' + str(a) for g, a in zip(gene_, accepted_primers['Amplicon_ID'])]
 
     accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
 
     print('-'*37)
     print('Primer design output files produced:')
-    print(f'{op}/SNP_inclusion-{read_number}-{read_size}.csv')
+    print(f'{op}/Mutation_inclusion-{read_number}-{read_size}.csv')
     print(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}.csv')
     print(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed')
     print(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv')
@@ -1033,7 +1033,7 @@ def main_amplicon_no(args):
     print(f"Amplicon Size: {args.amplicon_size}")
     print(f"SNP Priority: {args.snp_priority}")
     print(f"Reference Genome: {args.reference_genome}")
-    print(f"Target Coverage: {args.target_coverage}")
+    print(f"Target Coverage: {args.target_coverage * 100}%")
     print(f"Graphic Option: {args.graphic_option}")
     print(f"Output Folder Path: {args.output_folder_path}")
     print("===================================================")
@@ -1259,7 +1259,7 @@ def cli():
 
     # out
     output=parser_sub.add_argument_group("Output options")
-    output.add_argument('-op','--output_folder_path', type = str, help = 'Output_folder_path (accepted_primers, SNP_inclusion, gene_covered)', required=True)
+    output.add_argument('-op','--output_folder_path', type = str, help = 'Output_folder_path (accepted_primers, Mutation_inclusion, gene_covered)', required=True)
     parser_sub.set_defaults(func=main)
     
     ###### Amplicon number estimates
@@ -1300,7 +1300,7 @@ def cli():
     
     #output
     output=parser_sub.add_argument_group("output options")
-    output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'Output_folder_path (accepted_primers, SNP_inclusion, gene_covered)', required=True)
+    output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'Output_folder_path (accepted_primers, Mutation_inclusion, gene_covered)', required=True)
     parser_sub.set_defaults(func=main_plotting)
 
     args = parser.parse_args()

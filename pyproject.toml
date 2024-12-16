@@ -9,6 +9,16 @@ readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
+verion = 1.1.2
+
+dependencies = ["pandas", 
+                "numpy",
+                "plotly",
+                "rich_argparse",
+                "tabulate",
+                "primer3 >= 2.6.1",
+                "primer3-py >= 2.0.1"
+]
 
 [project.scripts]
 toast = "toast.main:cli"

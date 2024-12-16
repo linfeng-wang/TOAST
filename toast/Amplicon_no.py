@@ -78,7 +78,8 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
     coverage_list = []
     coverage_range = []
     print('Placing Amplicons...')
-    while coverage < target_coverage*0.99:
+    while coverage < target_coverage*1:
+    # while coverage < target_coverage*0.995:
         amplicon_number += 1
         amplicon_number_list.append(amplicon_number)
         start = pos[np.argmax(weight_window_sum)] # find the index of the max value in the rolling sum
@@ -87,25 +88,7 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
         end = start+window_size
         if end >  ref_size:
             end =  ref_size
-        # if len(covered_ranges) != 0:
-        #     pass
-        # break
-        # elif len(covered_ranges) > 0:
-        #     for i in range(len(covered_ranges)):
-        #         if start > covered_ranges[i][0] and start < covered_ranges[i][1]:
-        #             start_index = pos.index(covered_ranges[i][1])+1
-        #             start = pos[start_index]
-        #             if covered_ranges[i][1]+1 + read_size > full_data_cp.shape[0]:
-        #                 end = full_data_cp.shape[0]
-        #             end = covered_ranges[i][1]+1 + read_size
-        #         if end > covered_ranges[i][0] and end < covered_ranges[i][1]:
-        #             end = covered_ranges[i][0]-1
-        #             if covered_ranges[i][0]-1 - read_size < 0:
-        #                 start = 0
-        #             start = covered_ranges[i][0]-1 - read_size
-        # else:
-        #     print('error')
-        # covered_positions[f'Amplicon_{run+1}'] = {'Range':{'Start': start, 'End': end}, 'Markers':full_data_cp[['genome_pos','gene','sublin','drtype','drugs','weight']][start:end].sort_values(by=['weight']).to_dict('records')} 
+
         coverage_range.append([start, end])
         covered_positions = covered_positions.reset_index(drop=True)
         
@@ -117,10 +100,13 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
         # covered_positions = covered_positions.dropna(axis=1, how='all')
         # df2 = df2.dropna(axis=1, how='all')
         covered_positions = pd.concat([covered_positions, df2])
-        covered_positions = covered_positions.drop_duplicates()
-
+        # covered_positions = covered_positions.drop_duplicates()
+        # print(covered_positions['genome_pos'].unique().shape[0], full_data_cp['genome_pos'].unique().shape[0])
+        # print(covered_positions['genome_pos'].unique().shape[0]/full_data_cp['genome_pos'].unique().shape[0])
         coverage_trace.append(covered_positions.shape[0]/full_data.shape[0])
-        coverage = coverage_trace[-1]
+        # coverage = coverage_trace[-1]
+        coverage = covered_positions['genome_pos'].unique().shape[0]/full_data_cp['genome_pos'].unique().shape[0]
+        
                 # covered_positions[f'Amplicon_{run+1}'] = {'Range':{'Start': start, 'End': end}}  # concise version of output
         # Generating sample data
         # Displaying the plot
@@ -130,7 +116,7 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
         coverage_list.append(coverage*100)
         weight_window_sum = rolling_sum_search(full_data_cp, 'weight', window_size, full_data_cp['genome_pos'].tolist()) # recalculate the rolling sum
     
-    print(f'**{amplicon_number} amplicons needed to cover {round(coverage,3)*100}% SNPs')
+    print(f'**{amplicon_number} amplicons needed to cover {round(coverage,4)*100}% SNPs')
 
     output = pd.DataFrame({'Amplicon_number': amplicon_number_list, 'SNP_coverage(%)': coverage_list})
     
