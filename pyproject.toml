@@ -3,22 +3,26 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "toast"
+name = "toast-amplicon"
 authors = [{name = "Linfeng Wang", email = "linfeng.wang@lshtm.ac.uk"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
-verion = 1.1.2
+
 
 dependencies = ["pandas", 
                 "numpy",
                 "plotly",
                 "rich_argparse",
                 "tabulate",
-                "primer3 >= 2.6.1",
                 "primer3-py >= 2.0.1"
 ]
+
+[project.urls]
+Documentation = "https://flit.pypa.io"
+Source = "https://github.com/linfeng-wang/TOAST"
+
 
 [project.scripts]
 toast = "toast.main:cli"
