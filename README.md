@@ -78,16 +78,17 @@ Get to the code directory
 - **PRIMER_PAIR_MAX_COMPL_END**: Maximum 3' end complementarity score between primer pairs.
 - **PRIMER_PRODUCT_SIZE_RANGE**: Range of acceptable primer product sizes (e.g., "100-300").
 
-## Example format of the user defined files can be found in '''user_defined_files/''' folder:
+## Example format of the user defined files can be found in ```user_defined_files/``` folder:
 
-  - Configuration Parameters file: '''default_primer_design_setting.txt'''
-  - User input primer file: '''user_input_primer.csv'''
+  - Configuration Parameters file: ```default_primer_design_setting.txt```
+  - User input primer file: ```user_input_primer.csv```
 
 
 
 ## Ouput file format
-
+```
 <filetype>-<number of total amplicon designed>-<minimum amplicon size>-<maximum amplicon size>-<step size>-<number of amplicon for each size>
+```
 
 ### 5 different files are produced
 - Primer_design-accepted_primers: All detailed information about the designed amplicons
@@ -117,7 +118,6 @@ example usage:
 ```
 python mutation_priority_gen.py --positions "322168,553767,1077188" --output <output_path.csv>
 ```
-
 
 Test runs:
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 20
