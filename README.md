@@ -17,7 +17,7 @@ It can also be installed through pip at https://pypi.org/project/toast-amplicon/
 
 ### Workflow
 #### Before running the tool
-*Decide on SNP priority by modifying the SNP priority file (variant.csv)
+*Decide on SNP priority by modifying the SNP priority file (default: db/snp_priority.csv)
 *Decide on amplicon size
 
 #### Installing environment

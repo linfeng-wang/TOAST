@@ -7,7 +7,7 @@ Here we introduced TOAST software tool aimed at addressing the challenges in amp
 
 ### Workflow
 #### Before running the tool
-*Decide on SNP priority by modifying the SNP priority file (variant.csv)
+*Decide on SNP priority by modifying the SNP priority file (mutation_priority_example.csv - can be found in github)
 *Decide on amplicon size
 
 #### Dependencies
@@ -105,32 +105,3 @@ example usage:
 ```
 python mutation_priority_gen.py --positions "322168,553767,1077188" --output <output_path.csv>
 ```
-
-
-
-
-
-
-
-Test runs:
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 20
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 30
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 40
-
-
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 600,800,50,2 -sg Rv0678
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678,katG
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 400,800,50,1 -sg Rv0678,katG
-
-
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_Dario -a 600 -nn 19
-
-toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario -nn 19 -a 300 -p 100
-
-toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_1.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_1 -nn 6 -a 300 -p 100
-toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_2.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_2 -nn 6 -a 300 -p 100
-toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_3.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_3 -nn 6 -a 300 -p 100
-
-
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678,katG
-
