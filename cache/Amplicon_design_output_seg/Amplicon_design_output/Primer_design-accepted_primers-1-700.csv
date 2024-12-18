@@ -1,0 +1,2 @@
+Amplicon_ID,pLeft_ID,pLeft_coord,pLeft_length,pLeft_Tm,pLeft_GC,pLeft_Sequences,pLeft_EndStability,pRight_ID,pRight_coord,pRight_length,pRight_Tm,pRight_GC,pRight_Sequences,pRight_EndStability,Penalty,Product_size,Amplicon_type,Redesign,Designed_ranges,Designed_size,Group
+Rv2042c-A1-sp,P1-sp-L1,2288500,20,59.76,55.0,TGAAGGTGTCGTAGAAGRGG,5.52,P1-sp-R1,2289402,20,59.83,55.0,TGTCGCTCACTACATCACCG,4.94,0.41,902,Gene_specific:pncA,-,"[2288611, 2289311]",700,1

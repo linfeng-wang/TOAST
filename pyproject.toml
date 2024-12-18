@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "toast-amplicon"
 authors = [{name = "Linfeng Wang", email = "linfeng.wang@lshtm.ac.uk"}]
-readme = "README.md"
+readme = "PYPI.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
@@ -20,7 +20,7 @@ dependencies = ["pandas",
 ]
 
 [project.urls]
-Documentation = "https://flit.pypa.io"
+Documentation = "https://github.com/linfeng-wang/TOAST"
 Source = "https://github.com/linfeng-wang/TOAST"
 
 

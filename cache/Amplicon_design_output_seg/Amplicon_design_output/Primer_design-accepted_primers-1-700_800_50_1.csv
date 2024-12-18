@@ -1,0 +1,2 @@
+Amplicon_ID,pLeft_ID,pLeft_coord,pLeft_length,pLeft_Tm,pLeft_GC,pLeft_Sequences,pLeft_EndStability,pRight_ID,pRight_coord,pRight_length,pRight_Tm,pRight_GC,pRight_Sequences,pRight_EndStability,Penalty,Product_size,Amplicon_type,Redesign,Designed_ranges,Designed_size,Group
+mmpS5-A1-sp,P1-sp-L1,778851,20,59.96,55.0,GACCACAACCAGGATGAGCA,4.26,P1-sp-R1,779621,20,59.61,55.0,GGACAACACGYTCACRTACA,2.74,0.43,770,Gene_specific:Rv0678,-,"[778888, 779588]",700,1

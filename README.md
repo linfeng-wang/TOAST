@@ -23,39 +23,31 @@ It can also be installed through pip at https://pypi.org/project/toast-amplicon/
 #### Installing environment
 - Install the required conda environment
     ```conda env create -n TOAST -f environment.yml```
-    
-#### Running the tool
-Get to the code directory
-```cd code```
+- Install the tool (be in the directory with the .toml file)
+    ```pip install .```
 
 1. Estimate amplicon number needed for coverage (*amplicon_no* function)
    - Example: 
    ```
-    python main.py amplicon_no -a 400 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -g
-
-    toast amplicon_no -a 800 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -g
+    toast amplicon_no -a 800 -op ./cache/Amplicon_design_output -g
    ```
 2. Run amplicon design (*design* function)
     - Example: 
-    ```
-    python main.py design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40 
+    ```    
+    toast design -op ./cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40 
     
-    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40 
-    
-    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 25
+    toast design -op ./cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 25
 
-    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/output -a 1000 -nn 4 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv
+    toast design -op ./cache/output -a 1000 -nn 4 -ud ./cache/test_df.csv
 
-    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/output -a 1000 -nn 26
+    toast design -op ./cache/output -a 1000 -nn 26
 
-    toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -a 400 -sn 1 -sg rpsL -nn 0 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv
+    toast design -op ./cache/Amplicon_design_output -a 400 -sn 1 -sg rpsL -nn 0 -ud ./cache/test_df.csv
     ```
 3. Check amplicon design using coverage plot (*plotting* function)
     - Example: 
     ```
-    python main.py plotting -ap /mnt/storage10/lwang/Projects/TOAST/toast/Amplicon_design_output/Primer_design-accepted_primers-23-400.csv -rp /mnt/storage10/lwang/Projects/TOAST/toast/db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
-    
-    toast plotting -ap /mnt/storage10/lwang/Projects/TOAST/toast/Amplicon_design_output/Primer_design-accepted_primers-23-400.csv -rp /mnt/storage10/lwang/Projects/TOAST/toast/db/reference_design.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output -r 400
+    toast plotting -ap ./toast/Amplicon_design_output/Primer_design-accepted_primers-23-400.csv -rp ./toast/db/reference_design.csv -op ./cache/Amplicon_design_output -r 400
     ``` 
 
 
@@ -121,32 +113,3 @@ example usage:
 ```
 python mutation_priority_gen.py --positions "322168,553767,1077188" --output <output_path.csv>
 ```
-
-
-
-
-
-
-
-Test runs:
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 20
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 30
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_jp -a 1000 -sn 1 -sg mmpR5 -nn 40
-
-
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 600,800,50,2 -sg Rv0678
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678,katG
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 400,800,50,1 -sg Rv0678,katG
-
-
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_Dario -a 600 -nn 19
-
-toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario -nn 19 -a 300 -p 100
-
-toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_1.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_1 -nn 6 -a 300 -p 100
-toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_2.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_2 -nn 6 -a 300 -p 100
-toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario6_3.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario6_3 -nn 6 -a 300 -p 100
-
-
-toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678,katG
-
