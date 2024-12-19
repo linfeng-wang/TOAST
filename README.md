@@ -107,7 +107,7 @@ The complete example Mutation priority csv can be found in *mutation_priority_ex
 | sample_5  | 1119347    | gene_5 | change_5 | 1    | -    | -      | -      | -     | 1      |
 | sample_6  | 1414872    | gene_6 | change_6 | 1    | -    | -      | -      | -     | 1      |
 
-A script (*mutation_priority_gen.py*) can also be found to generate a file like the above:
+You can manually eddit this for though a script (*mutation_priority_gen.py*) can also be found to generate a file like the above:
 
 example usage: 
 ```

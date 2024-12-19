@@ -88,7 +88,7 @@ Here we introduced TOAST software tool aimed at addressing the challenges in amp
 
 **Specific mutation (Mutation Priority)file format:**
 Essentially all you need would be the genome position (genome_pos). Other columns are needed but you could used imputed values like below if unknown.
-The complete example Mutation priority csv can be found in *mutation_priority_example.csv*
+The complete example Mutation priority csv can be found in Github：*mutation_priority_example.csv*
 
 | sample_id | **genome_pos** | gene   | change   | freq | type | sublin | drtype | drugs | weight |
 |-----------|------------|--------|----------|------|------|--------|--------|-------|--------|
@@ -99,7 +99,7 @@ The complete example Mutation priority csv can be found in *mutation_priority_ex
 | sample_5  | 1119347    | gene_5 | change_5 | 1    | -    | -      | -      | -     | 1      |
 | sample_6  | 1414872    | gene_6 | change_6 | 1    | -    | -      | -      | -     | 1      |
 
-A script (*mutation_priority_gen.py*) can also be found to generate a file like the above:
+You can manually eddit this for though a script (Github：*mutation_priority_gen.py*) can also be found to generate a file like the above:
 
 example usage: 
 ```
