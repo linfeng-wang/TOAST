@@ -526,19 +526,30 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
             else:
                 if i == df.shape[0]-1:
                     print(f'!!!No suitable primer found: please manually inspect the sequence')
-                    change = input('Continue with redesign and do not skip?(y/n):')
-                    if change == 'y' or '':
-                        print('pass')
+                    
+                    # change = input('Continue with redesign and do not skip?(y/n):')
+                    # if change == 'y' or '':
+                    #     print('pass')
 
-                    else:
-                        print('skip')
-                        x = [0,row['pLeft_coord'],0,0,0,0,0,0,row['pRight_coord'],0,0,0,0,0,0,0]
+                    # else:
+                    #     print('skip')
+                    #     x = [0,row['pLeft_coord'],0,0,0,0,0,0,row['pRight_coord'],0,0,0,0,0,0,0]
 
-                        accepted_primers.loc[len(accepted_primers)] = x
-                        status = 'Skipped'
-                        no_primer.append(status)
-                        continue
+                    #     accepted_primers.loc[len(accepted_primers)] = x
+                    #     status = 'Skipped'
+                    #     no_primer.append(status)
+                    #     continue
                     # print('pass2')
+                    
+                    # skipping the amplicon by default
+                    print('Current amplicon skipped')
+                    
+                    status = 'Redesigned'
+                    x = [0,row['pLeft_coord'],0,0,0,0,0,0,row['pRight_coord'],0,0,0,0,0,0,0]
+                    accepted_primers.loc[len(accepted_primers)] = x
+                    status = 'Skipped'
+                    no_primer.append(status)
+                    continue
                     status = 'Redesigned'
                     
                     if abs(low_b - row['pLeft_coord']) > read_size/2:
@@ -698,19 +709,30 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
             else:
                 if i == df.shape[0]-1:
                     print(f'!!!No suitable primer found: please manually inspect the sequence')
-                    change = input('Continue with redesign and do not skip?(y/n):')
-                    if change == 'y' or '':
-                        print('pass')
-                    else:
-                        print('skip')
-                        x = [0,row['pLeft_coord'],0,0,0,0,0,0,row['pRight_coord'],0,0,0,0,0,0,0]
-                        accepted_primers.loc[len(accepted_primers)] = x
+                    
+                    #skipping the amplicon, ask the user
+                    # change = input('Continue with redesign and do not skip?(yes / No,skip this amplicon):')
+                    # if change == 'y':
+                    #     print('pass')
+                    # else:
+                    #     print('skip')
+                    #     x = [0,row['pLeft_coord'],0,0,0,0,0,0,row['pRight_coord'],0,0,0,0,0,0,0]
+                    #     accepted_primers.loc[len(accepted_primers)] = x
                         
-                        status = 'Skipped'
-                        no_primer.append(status)
-                        continue
+                    #     status = 'Skipped'
+                    #     no_primer.append(status)
+                    #     continue
                     # print('pass2')
+                    
+                    # skipping the amplicon by default
+                    print('Current amplicon skipped')
+                    
                     status = 'Redesigned'
+                    x = [0,row['pLeft_coord'],0,0,0,0,0,0,row['pRight_coord'],0,0,0,0,0,0,0]
+                    accepted_primers.loc[len(accepted_primers)] = x
+                    status = 'Skipped'
+                    no_primer.append(status)
+                    continue
 
                     if abs(low_b - row['pLeft_coord']) > read_size/2:
                     # if abs(low_b - row['pLeft_coord']) > read_size/2 or ~(low_b - row['pLeft_coord'])>=0:

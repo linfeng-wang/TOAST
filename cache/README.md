@@ -131,6 +131,8 @@ toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_outpu
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 400,800,50,1 -sg Rv0678,katG
 
 
+
+
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_Dario -a 600 -nn 19
 
 toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario.csv -op /mnt/storage10/lwang/Projects/TOAST_/cache/Amplicon_design_output_Dario -nn 19 -a 300 -p 100
@@ -142,3 +144,9 @@ toast design -s /mnt/storage10/lwang/Projects/TOAST_/toast/db/snp_priority_Dario
 
 toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_seg -seg 300,800,50,3 -sg Rv0678,katG
 
+/mnt/storage10/lwang/Projects/TOAST
+
+toast amplicon_no -s /mnt/storage10/lwang/Projects/TOAST/cache/lineage_specific_snp_priority.csv -650 -c 1 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_no_output_lineage
+
+
+/mnt/storage10/lwang/Projects/TOAST

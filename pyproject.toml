@@ -25,5 +25,5 @@ Source = "https://github.com/linfeng-wang/TOAST"
 
 
 [project.scripts]
-toast = "toast.main:cli"
+toast = "toast_amplicon.main:cli"
 

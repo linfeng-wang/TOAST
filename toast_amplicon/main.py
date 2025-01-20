@@ -321,6 +321,7 @@ def main(args):
     # paddding size
     if args.padding_size == None:    
         padding = int(read_size/6)
+        # padding = int(read_size/2)
         # padding = 50
     else:
         padding = args.padding_size
@@ -500,11 +501,9 @@ def main(args):
                     read_size, read_num = pop_first_item_simple(amplicon_sizes)
                     covered_positions_nosp_, covered_ranges_nosp_, non_specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
                     covered_positions_nosp =  {**covered_positions_nosp, **covered_positions_nosp_}
-                    
                     covered_ranges_nosp = covered_ranges_nosp + covered_ranges_nosp_
             else:
                 covered_positions_nosp, covered_ranges_nosp, non_specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
-            
             
             covered_positions = {**covered_positions_sp, **covered_positions_nosp}
         
@@ -519,6 +518,7 @@ def main(args):
         if args.non_specific_amplicon_no > 0:
             print('=====Non-specific amplicon=====')
             if segmented:
+                # print('Designing Segmented Amplicons')
                 # for x in range (specific_gene_amplicon+1): #add one specific gene amplicon
                 #     read_size, read_num = pop_first_item(amplicon_sizes)
                 #     covered_positions_nosp_, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
@@ -526,10 +526,16 @@ def main(args):
                 #     covered_ranges = covered_ranges + covered_ranges_nosp
                 # non_specific_gene_data_count = accepted_primers.shape[0] - user_defined_no
                 
-                for x in range(len(amplicon_sizes)):
+                for x in range(len(amplicon_sizes)): # this loop is only needed for segmented amplicons
                     read_size, read_num = pop_first_item_simple(amplicon_sizes)
-                    covered_positions_nosp_, covered_ranges_nosp_, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
-                    covered_positions_nosp = covered_positions_nosp + covered_positions_nosp_
+                    # covered_positions_nosp_, covered_ranges_nosp_, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                    covered_positions_nosp_, covered_ranges_nosp_, non_specific_gene_data, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, read_num, read_size, primer_pool, accepted_primers, no_primer_, ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
+                    # print('!!!')
+                    # print(full_data_cp)
+                    # print(non_specific_gene_data)
+                    covered_positions_nosp =  {**covered_positions_nosp, **covered_positions_nosp_}
+
+                    # covered_positions_nosp = covered_positions_nosp + covered_positions_nosp_
                     covered_ranges_nosp = covered_ranges_nosp + covered_ranges_nosp_
       
             else:
@@ -680,7 +686,8 @@ def main(args):
     accepted_primers.insert(1, 'Amplicon_ID', amplicone_name_list)
     # print('before increment')
     # print(accepted_primers)
-    if segmented:
+    
+    # if segmented:
         # def increment_id_with_regex(df, col_name):
         #     counter = {}  # Track counts of each ID
         #     new_ids = []  # Store updated IDs
@@ -711,42 +718,42 @@ def main(args):
 
         #     df[col_name] = new_ids  # Update the column with new IDs
 
-        def increment_id_with_regex(df, col_name):
-            counter = {}  # Track counts of each ID
-            new_ids = []  # Store updated IDs
+    def increment_id_with_regex(df, col_name):
+        counter = {}  # Track counts of each ID
+        new_ids = []  # Store updated IDs
 
-            for id in df[col_name]:
-                # original_id = id
-                # Use regex to find all numbers in the ID
-                if 'User' in id:
-                    continue
-                numbers = re.findall(r'\d+', id)
+        for id in df[col_name]:
+            # original_id = id
+            # Use regex to find all numbers in the ID
+            if 'User' in id:
+                continue
+            numbers = re.findall(r'\d+', id)
 
-                if numbers:
-                    first_number = numbers[0]  # Focus on the first number found
-                    if len(id.split('-')) > 2:
-                        check_id = '-'.join(id.split('-')[:-1])
-                    else:
-                        check_id = id
-                    new_id = id
-                    while check_id in counter:                
-                        # Increment the first number found
-                        new_number = str(int(first_number) + 1)
-                        # Replace the first occurrence of the number with its incremented value
-                        new_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, new_id, count=1)
-                        check_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, check_id, count=1)
-                        first_number = new_number  # Update first_number for potential next iteration
-                    counter[check_id] = True  # Mark this new ID as seen
-                    new_ids.append(new_id)  # Add to the list of new IDs
-                # else:
-                #     # If no number is found, just append the ID as is
-                #     new_ids.append(id)
+            if numbers:
+                first_number = numbers[0]  # Focus on the first number found
+                if len(id.split('-')) > 2:
+                    check_id = '-'.join(id.split('-')[:-1])
+                else:
+                    check_id = id
+                new_id = id
+                while check_id in counter:                
+                    # Increment the first number found
+                    new_number = str(int(first_number) + 1)
+                    # Replace the first occurrence of the number with its incremented value
+                    new_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, new_id, count=1)
+                    check_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, check_id, count=1)
+                    first_number = new_number  # Update first_number for potential next iteration
+                counter[check_id] = True  # Mark this new ID as seen
+                new_ids.append(new_id)  # Add to the list of new IDs
+            # else:
+            #     # If no number is found, just append the ID as is
+            #     new_ids.append(id)
 
-                # Update counter for the original ID if it's not already there to handle non-duplicates correctly
-                # if original_id not in counter:
-                #     counter[original_id] = True
+            # Update counter for the original ID if it's not already there to handle non-duplicates correctly
+            # if original_id not in counter:
+            #     counter[original_id] = True
 
-            df[col_name] = new_ids  # Update the column with new IDs
+        df[col_name] = new_ids  # Update the column with new IDs
 
     increment_id_with_regex(accepted_primers,'Amplicon_ID')
     increment_id_with_regex(accepted_primers, 'pLeft_ID')
@@ -878,7 +885,8 @@ def main(args):
 
     df1.to_csv(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv',index=False)
 
-    if specific_gene_amplicon>0 or non_specific_amplicon>0:
+    # if specific_gene_amplicon>0 or non_specific_amplicon>0:
+    if specific_gene_amplicon is not None  or non_specific_amplicon is not None:
         # amp_snp = pd.DataFrame(columns=full_data.columns)
         
         dtypes = {}
@@ -1195,7 +1203,7 @@ def cli():
         Visualization graphics and outputs in specified output folder path.
     """
     print("""
-    Command line interface for TOAST.
+    Command line interface for TOAST - Tuberculosis Optimized Amplicon Sequencing Tool
     
     Design Function - (design)
         - Purpose: To design specific amplicons for TB genes.
