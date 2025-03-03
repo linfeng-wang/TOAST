@@ -1,0 +1,12 @@
+sample_id,genome_pos,gene,change,freq,type,sublin,drtype,drugs,weight
+sample_1,12204,gene_1,change_1,1,-,-,-,-,1
+sample_2,12555,gene_2,change_2,1,-,-,-,-,1
+sample_3,811492,gene_3,change_3,1,-,-,-,-,1
+sample_4,811642,gene_4,change_4,1,-,-,-,-,1
+sample_5,811753,gene_5,change_5,1,-,-,-,-,1
+sample_6,1135798,gene_6,change_6,1,-,-,-,-,1
+sample_7,1136017,gene_7,change_7,1,-,-,-,-,1
+sample_8,1227217,gene_8,change_8,1,-,-,-,-,1
+sample_9,1227518,gene_9,change_9,1,-,-,-,-,1
+sample_10,4238120,gene_10,change_10,1,-,-,-,-,1
+sample_11,4238963,gene_11,change_11,1,-,-,-,-,1

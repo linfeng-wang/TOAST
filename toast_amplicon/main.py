@@ -877,7 +877,7 @@ def main(args):
         'Amplicon_ID': amplicon_id_series
     })
 
-    primer_inclusion.to_csv(f'{op}/Mutation_inclusion-{read_number}-{read_size}.csv',index=False)
+    primer_inclusion.to_csv(f'{op}/Mutation_inclusion-{read_number}-{read_size}.csv',index=False, lineterminator=None)
 
     df1 = primer_inclusion['Amplicon_ID'].value_counts().to_frame()
     df1.insert(0, 'Amplicon_id', df1.index)
@@ -1003,7 +1003,7 @@ def main(args):
         spol_p.columns = columns = ['col0', 'col1', 'col2', 'col3', 'col4', 'col5', 'col6', 'col7', 'col8']
         out = pd.concat([out, spol_p])
     
-    out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False)
+    out.to_csv(f'{op}/Amplicon_mapped-{read_number}-{read_size}.bed', sep='\t', header=False, index=False, lineterminator=None)
     
     #adding gene name in front of amplicon id
     gene_ = []
@@ -1019,7 +1019,7 @@ def main(args):
             
     accepted_primers['Amplicon_ID'] = [str(g) + '-' + str(a) for g, a in zip(gene_, accepted_primers['Amplicon_ID'])]
 
-    accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False)
+    accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False, lineterminator=None)
 
     print('-'*37)
     print('Primer design output files produced:')
@@ -1029,7 +1029,7 @@ def main(args):
     print(f'{op}/Amplicon_importance-{read_number}-{read_size}.csv')
     print(f'{op}/Gene_coverage-{read_number}-{read_size}.csv')
     
-    gene_coverage_df.to_csv(f'{op}/Gene_coverage-{read_number}-{read_size}.csv')
+    gene_coverage_df.to_csv(f'{op}/Gene_coverage-{read_number}-{read_size}.csv', lineterminator=None)
 
     end = time.time()
     print(f'>> Programme Done, design process ran for {round((end - start)/60,1)} min')

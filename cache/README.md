@@ -146,7 +146,10 @@ toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_outpu
 
 /mnt/storage10/lwang/Projects/TOAST
 
-toast amplicon_no -s /mnt/storage10/lwang/Projects/TOAST/cache/lineage_specific_snp_priority.csv -650 -c 1 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_no_output_lineage
+toast amplicon_no -s /mnt/storage10/lwang/Projects/TOAST/cache/lineage_specific_snp_priority.csv -a 650 -c 1 -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_no_output_lineage
 
 
-/mnt/storage10/lwang/Projects/TOAST
+toast design -s /mnt/storage10/lwang/Projects/TOAST/cache/lineage_specific_snp_priority.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_lineage -seg 300,850,50,3 -p 100
+
+
+toast design -s /mnt/storage10/lwang/Projects/TOAST/cache/lineage_specific_snp_priority_01-29.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_lineage01-29 -seg 200,450,50,2 -p 100
