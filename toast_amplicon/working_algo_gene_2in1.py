@@ -15,7 +15,7 @@ import pandas as pd
 from plotly import graph_objects as go
 # import json
 # from imp import reload
-from toast import primer_selection
+from toast_amplicon import primer_selection
 # reload(primer_selection)
 # import Amplicon_no
 # reload(Amplicon_no)

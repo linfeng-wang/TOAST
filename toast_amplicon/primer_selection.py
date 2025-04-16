@@ -20,7 +20,7 @@ from Bio.Seq import Seq
 from primer3 import calc_heterodimer
 from primer3 import bindings
 from Bio import SeqIO
-from toast import Thermo
+from toast_amplicon import Thermo
 import json
 from functools import lru_cache
 

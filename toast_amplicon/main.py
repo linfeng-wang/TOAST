@@ -16,18 +16,18 @@ import pandas as pd
 # from plotly import graph_objects as go
 # import json
 # from importlib import reload
-from toast import primer_selection
+from toast_amplicon import primer_selection
 # reload(primer_selection)
-from toast import Amplicon_no
+from toast_amplicon import Amplicon_no
 # reload(Amplicon_no)
-from toast import working_algo_gene_2in1 as wa
+from toast_amplicon import working_algo_gene_2in1 as wa
 # reload(w)
 import argparse
 from functools import reduce
 import os
 # import matplotlib.pyplot as plt
 import pandas as pd
-from toast import plotting1 as p
+from toast_amplicon import plotting1 as p
 # from icecream import ic
 from tabulate import tabulate
 import re

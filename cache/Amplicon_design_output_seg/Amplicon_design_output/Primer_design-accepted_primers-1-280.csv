@@ -1,0 +1,2 @@
+Amplicon_ID,pLeft_ID,pLeft_coord,pLeft_length,pLeft_Tm,pLeft_GC,pLeft_Sequences,pLeft_EndStability,pRight_ID,pRight_coord,pRight_length,pRight_Tm,pRight_GC,pRight_Sequences,pRight_EndStability,Penalty,Product_size,Amplicon_type,Redesign,Designed_ranges,Designed_size,Group
+rpoB-A1-ns,P1-ns-L1,760925,20,60.32,65.0,ACGGTCGGCGAGCTGATCCA,3.41,P1-ns-R1,761365,20,59.51,65.0,TCGCTAACCACGCCGTCGAC,4.2,0.81,440,Non_specific,-,"[761004, 761284]",280,1
