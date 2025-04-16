@@ -8,8 +8,7 @@ Currently this tool is available as a pre-print on BioRxiv: https://genomics.lsh
 The designed 33 primers covering drug resistance mutations according to the 50k dataset mutation frequency can be found in the /dr_amplicon_design-33/ folder in github.
 
 
-**A web version is also available at: https://genomics.lshtm.ac.uk/webtoast/#/
-**
+**A web version is also available at: https://genomics.lshtm.ac.uk/webtoast/#/**
 
 ### How to install
 Clone repository
@@ -19,21 +18,10 @@ Install Python package (be in the root directory of the repository)
 Install the required conda environment
 ```conda env create -n TOAST -f toast_env.yml```
 
-
 It can also be installed through pip at https://pypi.org/project/toast-amplicon/
 
-
-# TOAST: TB Amplicon Design and Analysis Tool
-
-**TOAST** is a command-line tool specifically designed for researchers working with genomic data from Mycobacterium tuberculosis (TB). It facilitates the efficient design, estimation, and visualization of amplicons targeted towards genetic variants important in clinical TB studies.
-
 ## Key Functionalities
-
 ### 1. **Amplicon Design (`toast design`)**
-
-**Purpose:**  
-Efficiently design specific amplicons targeting key TB genes and SNP (Single Nucleotide Polymorphism) variants for sequencing applications.
-
 **Main Inputs:**
 - SNP priority lists (`-s`): Default is globally collated clinical TB SNPs
 - Reference genome files (`-ref`): Default is MTB-h37rv genome
@@ -96,15 +84,6 @@ Visualization graphics, including coverage plots, available in the specified out
 
 ---
 
-## Installation
-
-Install TOAST using pip:
-```bash
-pip install toast
-```
-
-Ensure all dependencies are properly installed as detailed in the provided documentation.
-
 ## Quick Start
 
 To view available command-line options and their defaults, use:
@@ -123,18 +102,15 @@ toast plotting -h
 *Decide on amplicon size
 
 #### Installing environment
-- Install the required conda environment
-    ```conda env create -n TOAST -f environment.yml```
-- Install the tool (be in the directory with the .toml file)
-    ```pip install .```
+- Install the required conda environment and the tool
 
-1. Estimate amplicon number needed for coverage (*amplicon_no* function)
+1. Estimate amplicon number needed for coverage (*amplicon_no* function) (optional step)
    - Example: 
    ```
     toast amplicon_no -a 800 -op ./cache/Amplicon_design_output -g
    ```
-2. Run amplicon design (*design* function)
-    - Example: 
+2. Run amplicon design in different ways(*design* function)
+    - Examples: 
     ```    
     # Design amplicons of size 400 bp, including:
     # - 1 specific amplicon targeting genes rpoB and katG
