@@ -22,6 +22,8 @@ from primer3 import bindings
 from Bio import SeqIO
 from toast import Thermo
 import json
+from functools import lru_cache
+
 # reload(Thermo)
 # %%
 def calculate_gc_content(sequence):
@@ -70,9 +72,15 @@ def genome_size(fasta_file):
                 total_length += len(line.strip())
     return total_length
 #%%
-def complement_sequence(dna_sequence):
-    trans = str.maketrans('ATCGRYSWKMNBVDH-.', 'TAGCYRWSMKNVBHD-.')
-    return dna_sequence.upper().translate(trans)
+#original
+# def complement_sequence(dna_sequence):
+#     trans = str.maketrans('ATCGRYSWKMNBVDH-.', 'TAGCYRWSMKNVBHD-.')
+#     return dna_sequence.upper().translate(trans)
+
+# faster
+@lru_cache(maxsize=None)
+def complement_sequence(seq):
+    return seq.translate(str.maketrans('ATCGRYSWKMNBVDH-.', 'TAGCYRWSMKNVBHD-.'))
 
 # print(complement_sequence("ATGCGTA"))
 # Example usage:
@@ -80,10 +88,18 @@ def complement_sequence(dna_sequence):
 # complement_sequence = complement_sequence(dna_sequence)
 # print(complement_sequence)  # Output: TACGCAT
 #%%
+#original
+# def reverse_complement_sequence(seq):
+#     complement = {"A": "T", "T": "A", "C": "G", "G": "C", 'R': 'Y', 'Y': 'R', 'S': 'S', 'W': 'W', 'K': 'M', 'M': 'K', 'N': 'N', 'B': 'V', 'V': 'B', 'D': 'H', 'H': 'D', '-':'-','.': '.'}
+#     reverse_seq = seq[::-1]
+#     return "".join(complement[base] for base in reverse_seq)
+
+# faster
+@lru_cache(maxsize=None)
 def reverse_complement_sequence(seq):
-    complement = {"A": "T", "T": "A", "C": "G", "G": "C", 'R': 'Y', 'Y': 'R', 'S': 'S', 'W': 'W', 'K': 'M', 'M': 'K', 'N': 'N', 'B': 'V', 'V': 'B', 'D': 'H', 'H': 'D', '-':'-','.': '.'}
-    reverse_seq = seq[::-1]
-    return "".join(complement[base] for base in reverse_seq)
+    complement = str.maketrans('ATCGRYSWKMNBVDH-.', 'TAGCYRWSMKNVBHD-.')
+    return seq.translate(complement)[::-1]
+
 
 def updown_stream_primer_range(start_pos, end_pos, dis_range=0):
     up_stream = complement_sequence(extract_sequence_from_fasta(start_pos-dis_range, start_pos))
@@ -176,11 +192,16 @@ def simplified_tm(seq):
 #         dinucleotide = seq[i:i+2]
 #         dg += nn_params.get(dinucleotide, 0)
 #     return dg
+#original
+# def calculate_similarity(seq1, seq2):
+#     matches = sum(1 for a, b in zip(seq1, seq2) if a == b)
+#     return matches / len(seq1) * 100
 
+## faster
 def calculate_similarity(seq1, seq2):
-    matches = sum(1 for a, b in zip(seq1, seq2) if a == b)
-    return matches / len(seq1) * 100
-
+    a = np.frombuffer(seq1.encode(), dtype='S1')
+    b = np.frombuffer(seq2.encode(), dtype='S1')
+    return (a == b).sum() / len(a) * 100
 # def check_last_n_base_pairs(seq1, seq2, n):
 #     """
 #     Check if the last n base pairs of two sequences are the same.
@@ -207,37 +228,43 @@ def calculate_similarity(seq1, seq2):
 
 # Re-running the code after the execution state reset
 
-def check_last_n_base_pairs(seq1, seq2, n=5, t=2):
-    """
-    Count the number of mismatches in the last n base pairs of two sequences.
+# original
+# def check_last_n_base_pairs(seq1, seq2, n=5, t=2):
+#     """
+#     Count the number of mismatches in the last n base pairs of two sequences.
 
-    Parameters:
-    - seq1: The first sequence (string)
-    - seq2: The second sequence (string)
-    - n: The number of base pairs to compare from the end (integer)
+#     Parameters:
+#     - seq1: The first sequence (string)
+#     - seq2: The second sequence (string)
+#     - n: The number of base pairs to compare from the end (integer)
 
-    Returns:
-    - int: The number of mismatches in the last n base pairs
-    """
+#     Returns:
+#     - int: The number of mismatches in the last n base pairs
+#     """
     
-    # Initialize mismatch count
-    mismatch_count = 0
+#     # Initialize mismatch count
+#     mismatch_count = 0
     
-    # Check if either sequence is shorter than n
-    if len(seq1) < n or len(seq2) < n:
-        return "One or both sequences are shorter than n."
+#     # Check if either sequence is shorter than n
+#     if len(seq1) < n or len(seq2) < n:
+#         return "One or both sequences are shorter than n."
     
-    # Get the last n base pairs from each sequence
-    last_n_seq1 = seq1[-n:]
-    last_n_seq2 = seq2[-n:]
+#     # Get the last n base pairs from each sequence
+#     last_n_seq1 = seq1[-n:]
+#     last_n_seq2 = seq2[-n:]
     
-    # Count mismatches in the last n base pairs
-    for base1, base2 in zip(last_n_seq1, last_n_seq2):
-        if base1 != base2:
-            mismatch_count += 1
+#     # Count mismatches in the last n base pairs
+#     for base1, base2 in zip(last_n_seq1, last_n_seq2):
+#         if base1 != base2:
+#             mismatch_count += 1
             
-    return mismatch_count<2 # returns true if mismatch is less than 2 -> alternative binding - polymerases can go on
+#     return mismatch_count<2 # returns true if mismatch is less than 2 -> alternative binding - polymerases can go on
 
+# faster
+def check_last_n_base_pairs(seq1, seq2, n=5, t=2):
+    # Return True if fewer than t mismatches in the last n bases
+    mismatches = sum(a != b for a, b in zip(seq1[-n:], seq2[-n:]))
+    return mismatches < t
 # # Test the function
 # seq1 = "ATCGATCG"
 # seq2 = "ATCGATCA"
@@ -252,67 +279,124 @@ def check_last_n_base_pairs(seq1, seq2, n=5, t=2):
 # result = check_last_n_base_pairs("ATCGGA", "TTTGTA", 2)
 # print("Are the last 2 base pairs the same?", result)  # Output should be False
 
-#%%
-def has_multiple_binding_sites(sequence, genome, similarity_threshold=90, min_tm=50, max_dg=-10):
-    class TmVar:
-        DivalentSaltConc = 2
-        MonovalentSaltConc = 10
-        dNTPConc = 0.2 
-        OligoConc = 0.5
+#%% origional function
+# def has_multiple_binding_sites(sequence, genome, similarity_threshold=90, min_tm=50, max_dg=-10):
+#     class TmVar:
+#         DivalentSaltConc = 2
+#         MonovalentSaltConc = 10
+#         dNTPConc = 0.2 
+#         OligoConc = 0.5
 
-    seq_len = len(sequence)
-    genome_len = len(genome)
-    count = 0
-    # flocations = []
-    # rlocations = []
-    n = 5
-    t = 2
-    for i in range(genome_len - seq_len + 1):
-        within_tm_threshold, within_dg_threshold = False, False
-        subseq = genome[i:i + seq_len]
-        reverse_comp_subseq = reverse_complement_sequence(subseq)
-        if calculate_similarity(subseq, sequence)>similarity_threshold:
-            if check_last_n_base_pairs(subseq, sequence, n, t):
-                # flocations.append(i)
-                # print('>>>Calculated_similarity')
-                within_tm_threshold, within_dg_threshold = False, False
-                (dg, tm) = Thermo.simplified_tm(subseq, complement_sequence(subseq), TmVar)
+#     seq_len = len(sequence)
+#     genome_len = len(genome)
+#     count = 0
+#     # flocations = []
+#     # rlocations = []
+#     n = 5
+#     t = 2
+#     for i in range(genome_len - seq_len + 1):
+#         within_tm_threshold, within_dg_threshold = False, False
+#         subseq = genome[i:i + seq_len]
+#         reverse_comp_subseq = reverse_complement_sequence(subseq)
+#         if calculate_similarity(subseq, sequence)>similarity_threshold:
+#             if check_last_n_base_pairs(subseq, sequence, n, t):
+#                 # flocations.append(i)
+#                 # print('>>>Calculated_similarity')
+#                 within_tm_threshold, within_dg_threshold = False, False
+#                 (dg, tm) = Thermo.simplified_tm(subseq, complement_sequence(subseq), TmVar)
                 
-                within_tm_threshold = tm >= min_tm
-                within_dg_threshold = dg['Gibbs'] <= max_dg
-        elif calculate_similarity(reverse_comp_subseq, sequence)>similarity_threshold:
-            if check_last_n_base_pairs(reverse_comp_subseq, sequence, n, t):
-                # print('====C')
+#                 within_tm_threshold = tm >= min_tm
+#                 within_dg_threshold = dg['Gibbs'] <= max_dg
+#         elif calculate_similarity(reverse_comp_subseq, sequence)>similarity_threshold:
+#             if check_last_n_base_pairs(reverse_comp_subseq, sequence, n, t):
+#                 # print('====C')
                 
-                # rlocations.append(i)
-                # print('>>>Calculated_similarity')
-                within_tm_threshold, within_dg_threshold = False, False
-                (dg, tm) = Thermo.simplified_tm(reverse_comp_subseq, complement_sequence(reverse_comp_subseq), TmVar)
+#                 # rlocations.append(i)
+#                 # print('>>>Calculated_similarity')
+#                 within_tm_threshold, within_dg_threshold = False, False
+#                 (dg, tm) = Thermo.simplified_tm(reverse_comp_subseq, complement_sequence(reverse_comp_subseq), TmVar)
 
-                within_tm_threshold = tm >= min_tm
-                within_dg_threshold = dg['Gibbs'] <= max_dg
-        if within_tm_threshold & within_dg_threshold: # the alternative binding site is within the threshold
-            # print('====D')
+#                 within_tm_threshold = tm >= min_tm
+#                 within_dg_threshold = dg['Gibbs'] <= max_dg
+#         if within_tm_threshold & within_dg_threshold: # the alternative binding site is within the threshold
+#             # print('====D')
             
-            # print(genome[i:i + seq_len])
-            count += 1
+#             # print(genome[i:i + seq_len])
+#             count += 1
             
-            if count > 1:
-                # print('>>>within_tm_threshold & within_dg_threshold')
-                # print("#####")
-                # print(flocations)
-                # print(rlocations)
-                # print('====E')
-                return True  # Early exit if more than one binding site is found
-    # print(flocations)
-    # print(rlocations)
-    return False  # Return False if only one or no binding sites are found
+#             if count > 1:
+#                 # print('>>>within_tm_threshold & within_dg_threshold')
+#                 # print("#####")
+#                 # print(flocations)
+#                 # print(rlocations)
+#                 # print('====E')
+#                 return True  # Early exit if more than one binding site is found
+#     # print(flocations)
+#     # print(rlocations)
+#     return False  # Return False if only one or no binding sites are found
+
+
 # # Usage:
 # primer = 'CGAACTCGAGGCTGCCTACT'
 # # primer = 'GCTCGTCCATGTCCCACCAT'
 # genome = primer_selection.extract_sequence_from_fasta(0, genome_size(ref_genome),0)
 # result = has_multiple_binding_sites(primer, genome, 81)
 # print(result)  # Output: True or False
+
+# new and faster function
+def has_multiple_binding_sites(sequence, genome, similarity_threshold=90, min_tm=50, max_dg=-10):
+    from functools import lru_cache
+
+    class TmVar:
+        DivalentSaltConc = 2
+        MonovalentSaltConc = 10
+        dNTPConc = 0.2 
+        OligoConc = 0.5
+
+    @lru_cache(maxsize=None)
+    def rc(seq):
+        return reverse_complement_sequence(seq)
+
+    @lru_cache(maxsize=None)
+    def comp(seq):
+        return complement_sequence(seq)
+
+    seq_len = len(sequence)
+    genome_len = len(genome)
+    count = 0
+    n = 5
+    t = 2
+
+    for i in range(genome_len - seq_len + 1):
+        subseq = genome[i:i + seq_len]
+        reverse_subseq = rc(subseq)
+
+        if subseq == sequence or reverse_subseq == sequence:
+            continue
+        # Precompute both orientations
+        forward_sim = calculate_similarity(subseq, sequence)
+        reverse_sim = calculate_similarity(reverse_subseq, sequence)
+
+        if forward_sim > similarity_threshold:
+            if not check_last_n_base_pairs(subseq, sequence, n, t):
+                continue
+            dg, tm = Thermo.simplified_tm(subseq, comp(subseq), TmVar)
+        elif reverse_sim > similarity_threshold:
+            if not check_last_n_base_pairs(reverse_subseq, sequence, n, t):
+                continue
+            dg, tm = Thermo.simplified_tm(reverse_subseq, comp(reverse_subseq), TmVar)
+        else:
+            continue  # Skip this window entirely
+
+        # Thermodynamic thresholds
+        if tm >= min_tm and dg['Gibbs'] <= max_dg:
+            count += 1
+            if count > 1:
+                return True  # Found more than one binding site
+
+    return False  # Zero or one valid site
+
+
 
 # Check for material binding sites
 def check_for_snp(seq, priority, plength, forward, ref_genome, cut_off=50000, spol = False):

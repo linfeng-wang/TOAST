@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 # from geneticalgorithm import geneticalgorithm as ga
-from rich_argparse import ArgumentDefaultsRichHelpFormatter
+from rich_argparse import RawDescriptionRichHelpFormatter
 import pandas as pd
 # from collections import Counter
 # from tqdm import tqdm
@@ -258,11 +258,16 @@ def main(args):
     print(f"- Reference Genome: {args.reference_genome}")
     print(f"- gff file: {args.gff3_file}")
     print(f"- User defined primers: {args.user_defined_primers}")
+
     if args.padding_size == None:
-        print(f"- Padding_size: {int(args.amplicon_size/6)}")
-        # print(f"Padding_size: {args.amplicon_size/8}")
+        if int(args.amplicon_size/6) < 100:
+            args.amplicon_size = 100
+            print('!! Padding size is less than 100, increased to 100bp to faciliate primer design')
+        print(f"- Padding_size: {int(args.amplicon_size)}")
     else:
-        print(f"- Padding_size: {args.padding_size}")
+        print(f"- Padding_size: {int(args.padding_size)}")
+        if int(args.amplicon_size/6) < 100:
+            print('!! Padding size is less than 100, might introduce difficulties in primer design')
         
     if args.segmented_amplicon_size != None:
         print(f"- Segmented Amplicon Size [min, max, step, count of each step]: [{args.segmented_amplicon_size}]")
@@ -320,7 +325,7 @@ def main(args):
 
     # paddding size
     if args.padding_size == None:    
-        padding = int(read_size/6)
+        padding = max(int(read_size/6), 100)
         # padding = int(read_size/2)
         # padding = 50
     else:
@@ -1091,7 +1096,7 @@ def main_plotting(args):
 #     subparsers = parser.add_subparsers(dest="command", help="Task to perform")
 
 #     ###### Design pipeline
-#     parser_sub = subparsers.add_parser('design', help='Run whole design pipeline', formatter_class=ArgumentDefaultsRichHelpFormatter)
+#     parser_sub = subparsers.add_parser('design', help='Run whole design pipeline', formatter_class=RawDescriptionRichHelpFormatter)
 #     input=parser_sub.add_argument_group("Input options")
 #     # parser.add_argument('-c','--country_file', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='variants.csv', default=None)
 #     # in
@@ -1116,7 +1121,7 @@ def main_plotting(args):
 #     parser_sub.set_defaults(func=main)
     
 #     ###### Amplicon number estimates
-#     parser_sub = subparsers.add_parser('amplicon_no', help='Amplicon number estimates', formatter_class=ArgumentDefaultsRichHelpFormatter)
+#     parser_sub = subparsers.add_parser('amplicon_no', help='Amplicon number estimates', formatter_class=RawDescriptionRichHelpFormatter)
 #     input=parser_sub.add_argument_group("input options")
 #     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
 #     input.add_argument('-sc_f','--spoligo_sequencing_file', type = str, help = 'Custom spoligotype range files (default: TB spligotype space ranges)', default = '../db/spacers.bed')
@@ -1142,7 +1147,7 @@ def main_plotting(args):
 #     # output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output folder path for covered ranges')
 
 #     ###### Visualisation of designed amplicons
-#     parser_sub = subparsers.add_parser('plotting', help='Visualised the designed amplicons', formatter_class=ArgumentDefaultsRichHelpFormatter)
+#     parser_sub = subparsers.add_parser('plotting', help='Visualised the designed amplicons', formatter_class=RawDescriptionRichHelpFormatter)
 #     #input
 #     input=parser_sub.add_argument_group("input options")
 #     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='../db/variants.csv')
@@ -1202,11 +1207,11 @@ def cli():
         Outputs:
         Visualization graphics and outputs in specified output folder path.
     """
-    print("""
-    Command line interface for TOAST - Tuberculosis Optimized Amplicon Sequencing Tool
     
+    
+    description_design="""
     Design Function - (design)
-        - Purpose: To design specific amplicons for TB genes.
+        - Purpose: To design amplicons for TB genes.
         - Inputs:
             SNP priorities, reference genomes, spoligotype sequencing files.
         - Settings:
@@ -1214,7 +1219,9 @@ def cli():
             Option for graphical output.
         - Outputs:
             Files in specified output folder path.
-        
+    """
+    
+    description_amplicon_no="""        
     Amplicon Number Estimates Function - (amplicon_no)
         - Purpose: To estimate the number of amplicons for SNP coverage in TB genomic studies.
         - Inputs:
@@ -1222,8 +1229,11 @@ def cli():
         - Settings:
             Amplicon size, target coverage, graphical output option.
         - Outputs:
-            Estimates and graphics in the specified output folder path.
-        
+            Estimates and graphics in the specified output folder path/
+    """
+    
+    
+    description_plotting="""       
     Plotting Function - (plotting)
         - Purpose: To visualize designed amplicons for analysis.
         - Inputs:
@@ -1232,8 +1242,8 @@ def cli():
             Read size specification.
         - Outputs:
             Visualization graphics and outputs in specified output folder path.
-    """)
-    
+    """
+
     parser = argparse.ArgumentParser(prog='Amplicon designer for TB', 
                                     description='Amplicon design, list of specific genes that can be priotised: rpoB,katG,embB,pncA,rpsL,rrs,ethA,fabG1,gyrA,gid,inhA,ethR,rpoC,ahpC,gyrB,folC,tlyA,alr,embA,thyA,eis (given the default SNP database)',
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -1241,7 +1251,7 @@ def cli():
     subparsers = parser.add_subparsers(dest="command", help="Task to perform")
 
     ###### Design pipeline
-    parser_sub = subparsers.add_parser('design', help='Run whole design pipeline', formatter_class=ArgumentDefaultsRichHelpFormatter)
+    parser_sub = subparsers.add_parser('design', help='Run whole design pipeline', description=description_design, formatter_class=RawDescriptionRichHelpFormatter)
     input=parser_sub.add_argument_group("Input options")
     # parser.add_argument('-c','--country_file', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default='variants.csv', default=None)
     # in
@@ -1271,7 +1281,7 @@ def cli():
     parser_sub.set_defaults(func=main)
     
     ###### Amplicon number estimates
-    parser_sub = subparsers.add_parser('amplicon_no', help='Amplicon number estimates', formatter_class=ArgumentDefaultsRichHelpFormatter)
+    parser_sub = subparsers.add_parser('amplicon_no', help='Amplicon number estimates', description=description_amplicon_no, formatter_class=RawDescriptionRichHelpFormatter)
     # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input=parser_sub.add_argument_group("input options")
     input.add_argument('-s','--snp_priority', type = str, help = 'SNP priority CSV files (default: collated global 50k clinical TB samples)', default=f'{db}/variants.csv')
@@ -1296,7 +1306,7 @@ def cli():
     # output.add_argument('-op','--output_folder_path', default = '', type = str, help = 'output folder path for covered ranges')
 
     ###### Visualisation of designed amplicons
-    parser_sub = subparsers.add_parser('plotting', help='Visualised the designed amplicons', formatter_class=ArgumentDefaultsRichHelpFormatter)
+    parser_sub = subparsers.add_parser('plotting', help='Visualised the designed amplicons', description=description_plotting, formatter_class=RawDescriptionRichHelpFormatter)
     #input
     # input.add_argument('-h', '--help', action='CustomHelpAction', help='help')
     input=parser_sub.add_argument_group("input options")

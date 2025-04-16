@@ -2,9 +2,9 @@
 <!-- - TB and Other pathogen Amplicon Sequencing Tool
 - TB ONT Amplicon Sequencing Tool -->
 
-Here we introduced TOAST software tool aimed at addressing the challenges in amplicon primer design for TB sequencing leveraging the package primer3 for Tm, homopolymers, hairpins, homodimers considerations and in-house pipeline for avoiding heterodimer, alternative binding. This automated tool in takes user defined SNP priority for amplicon coverage and outputs designed amplicon primers with respective Tm and primer coordinates and sequence with capability of focusing on specific genes and taking into account of spoligotypes.
+We present TOAST, a software tool designed to streamline and optimize amplicon primer design for Mycobacterium tuberculosis sequencing. TOAST integrates the robust primer design capabilities of Primer3—accounting for Tm, homopolymers, hairpins, and homodimers—with an in-house pipeline that rigorously filters for heterodimer formation and unintended alternative binding. What sets TOAST apart is its automation and intelligence: it leverages a curated database of over 50 M. tuberculosis genomes to inform amplicon placement, ensuring robust primer performance across strain diversity. Users can prioritize SNPs for coverage, focus on specific resistance genes, and tailor designs to spoligotype backgrounds. The tool outputs primer sequences along with detailed thermodynamic profiles and genomic coordinates, making it an end-to-end solution for targeted TB panel design.
 
-Currently this tool is available as a pre-print on BioRxiv: https://genomics.lshtm.ac.uk/webtoast/#/
+Currently this tool is available as a **pre-print on BioRxiv**: https://genomics.lshtm.ac.uk/webtoast/#/
 The designed 33 primers covering drug resistance mutations according to the 50k dataset mutation frequency can be found in the /dr_amplicon_design-33/ folder in github.
 
 
@@ -15,7 +15,7 @@ Clone repository
 ```git clone <repo html link>```
 Install Python package (be in the root directory of the repository)
 ```pip install .```
-Install the required conda environment
+Install the required conda environment, yml file form linux and python 3.11.6
 ```conda env create -n TOAST -f toast_env.yml```
 
 It can also be installed through pip at https://pypi.org/project/toast-amplicon/
@@ -34,7 +34,7 @@ It can also be installed through pip at https://pypi.org/project/toast-amplicon/
 - Number of specific amplicons (`-sn`) and targeted gene names (`-sg`)
 - Number of non-specific amplicons (`-nn`)
 - Graphical output option (`-g`) to visualize amplicon coverage
-
+- **All SNPs** in the reference genome (`-all_snp`) uses all frequent SNPs from the default database to design degenerate primers. **For other species**, a custom SNP file in the same format can be provided to override the default.
 **Outputs:**  
 - Amplicon sequences and primer details organized into a user-specified output directory (`-op`)
 - Optional graphical representations of designed amplicons
@@ -54,7 +54,7 @@ Estimate the number of amplicons required to achieve desired SNP coverage in TB 
 
 **Main Inputs:**
 - SNP priority files (`-s`)
-- Reference genome (`-ref`) and spoligotype sequencing files (`-sp_f`)
+- Reference genome (`-ref`)
 
 **Settings:**
 - Desired amplicon size (`-a`)
@@ -95,7 +95,6 @@ toast plotting -h
 
 ---
 
-
 ### Workflow
 #### Before running the tool
 *Decide on SNP priority by modifying the SNP priority file (default: db/snp_priority.csv)
@@ -115,28 +114,34 @@ toast plotting -h
     # Design amplicons of size 400 bp, including:
     # - 1 specific amplicon targeting genes rpoB and katG
     # - 40 non-specific amplicons covering SNPs prioritized by the built-in SNP priority list
-    toast design -op /example_output_directory -a 400 -sn 1 -sg rpoB,katG -nn 40
+    toast design -op /output_directory -a 400 -sn 1 -sg rpoB,katG -nn 40
 
     # Design amplicons of size 400 bp, including:
     # - 1 specific amplicon targeting genes rpoB and katG
     # - 25 non-specific amplicons covering prioritized SNPs (fewer than previous, reducing overall SNP coverage)
-    toast design -op /example_output_directory -a 400 -sn 1 -sg rpoB,katG -nn 25
+    toast design -op /output_directory -a 400 -sn 1 -sg rpoB,katG -nn 25
 
     # Design amplicons of size 1000 bp, including:
     # - 4 non-specific amplicons covering prioritized SNPs
-    # - Incorporate user-defined primer designs specified in './cache/test_df.csv'
-    toast design -op /example_output_directory -a 1000 -nn 4 -ud ./cache/test_df.csv
+    # - Incorporate user-defined primer designs specified in './cache/test_df.csv' same format as the primer design output (dr_amplicon_design-33/Primer_design.csv)
+    toast design -op /output_directory -a 1000 -nn 4 -ud ./cache/test_df.csv
 
     # Design amplicons of size 1000 bp, including:
     # - 26 non-specific amplicons covering prioritized SNPs
     # - No user-defined primers; only built-in SNP prioritization is used
-    toast design -op /example_output_directory -a 1000 -nn 26
+    toast design -op /output_directory -a 1000 -nn 26
 
     # Design amplicons of size 400 bp, including:
     # - 1 specific amplicon targeting gene rpsL
     # - No additional non-specific amplicons
     # - Include user-defined primer designs from './cache/test_df.csv'
-    toast design -op /example_output_directory -a 400 -sn 1 -sg rpsL -nn 0 -ud ./cache/test_df.csv
+    toast design -op /output_directory -a 400 -sn 1 -sg rpsL -nn 0 -ud ./cache/test_df.csv
+
+    # Design amplicons ranging from 300 to 450 bp in 50 bp steps, including:
+    # - 2 repeating amplicon designs per region: sizes of amplicon designed: 300, 300, 350, 350, 400, 400, 450, 450
+    # - Target TB drug resistance genes: Rv0678 and katG
+    toast design \
+      -op /output_directory -seg 300,450,50,2 -sg Rv0678,katG
 
     ```
 3. Check amplicon design using coverage plot (*plotting* function) (opional)
@@ -145,8 +150,12 @@ toast plotting -h
     toast plotting -ap ./toast/Amplicon_design_output/Primer_design-accepted_primers-23-400.csv -rp ./toast/db/reference_design.csv -op ./cache/Amplicon_design_output -r 400
     ``` 
 
+Segmented amplicon design is used to generate amplicons of varying sizes so they can be easily distinguished on an agarose gel. This provides a quick visual check to confirm successful amplification before sequencing, allowing users to validate that each target produced a distinct band. It helps avoid wasting sequencing resources on failed reactions and serves as a practical sanity check in the experimental workflow.
 
-## Primer3 Configuration Parameters (default file: db/default_primer_design_setting.txt) (advanced setting)
+If issues arise during amplicon design—such as no primers being generated—it is most likely due to insufficient padding. A small padding size can restrict the available sequence context needed for effective primer placement. To resolve this, try increasing the padding value to provide more room for the design algorithm to work with.
+---
+
+## Primer3 Configuration Parameters (default file: amplicon/db/default_primer_design_setting.json) (advanced setting)
 
 - **PRIMER_NUM_RETURN**: Number of primer pairs to return.
 - **PRIMER_PICK_INTERNAL_OLIGO**: Flag to pick internal oligos (0 for no, 1 for yes).
@@ -174,18 +183,17 @@ toast plotting -h
   - User input primer file: ```user_input_primer.csv```
 
 
-
 ## Ouput file format
 ```
 <filetype>-<number of total amplicon designed>-<minimum amplicon size>-<maximum amplicon size>-<step size>-<number of amplicon for each size>
 ```
 
 ### 5 different files are produced
-- Primer_design-accepted_primers: All detailed information about the designed amplicons
-- Amplicon_importance: Number of SNP coverd by each amplicon
-- Amplicon_mapped: bed file can be used to visualised the amplicon on genome using tools such as igv
-- SNP_inclusion: shows SNP covered
-- Gene_covereage: show percentage of each gene covered
+- **Primer_design-accepted_primers:** All detailed information about the designed amplicons **(dr_amplicon_design-33/Primer_design.csv)**
+- **Amplicon_importance:** Number of SNP coverd by each amplicon **(dr_amplicon_design-33/Amplicon_importance.csv)**
+- **Amplicon_mapped:** bed file can be used to visualised the amplicon on genome using tools such as igv **(dr_amplicon_design-33/Amplicon_mapped.bed)**
+- **SNP_inclusion:** shows SNP covered **(dr_amplicon_design-33/SNP_inclusion.csv)**
+- **Gene_covereage:** show percentage of each gene covered **(dr_amplicon_design-33/Gene_coverage.csv)**
 
 
 
@@ -206,9 +214,8 @@ You can manually eddit this for though a script (*mutation_priority_gen.py*) can
 
 example usage: 
 ```
-python mutation_priority_gen.py --positions "322168,553767,1077188" --output <output_path.csv>
+python mutation_priority_gen.py --positions "322168,553767,1077188,1119158,1119347,1414872" --output <output_path.csv>
 ```
-
 
 
 REFERENCE:
