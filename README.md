@@ -8,18 +8,114 @@ Currently this tool is available as a pre-print on BioRxiv: https://genomics.lsh
 The designed 33 primers covering drug resistance mutations according to the 50k dataset mutation frequency can be found in the /dr_amplicon_design-33/ folder in github.
 
 
-A website is also available at: https://genomics.lshtm.ac.uk/webtoast/#/
+**A web version is also available at: https://genomics.lshtm.ac.uk/webtoast/#/
+**
 
 ### How to install
-Install the required conda environment
-```conda env create -n TOAST -f environment.yml```
 Clone repository
 ```git clone <repo html link>```
 Install Python package (be in the root directory of the repository)
 ```pip install .```
+Install the required conda environment
+```conda env create -n TOAST -f toast_env.yml```
 
 
 It can also be installed through pip at https://pypi.org/project/toast-amplicon/
+
+
+# TOAST: TB Amplicon Design and Analysis Tool
+
+**TOAST** is a command-line tool specifically designed for researchers working with genomic data from Mycobacterium tuberculosis (TB). It facilitates the efficient design, estimation, and visualization of amplicons targeted towards genetic variants important in clinical TB studies.
+
+## Key Functionalities
+
+### 1. **Amplicon Design (`toast design`)**
+
+**Purpose:**  
+Efficiently design specific amplicons targeting key TB genes and SNP (Single Nucleotide Polymorphism) variants for sequencing applications.
+
+**Main Inputs:**
+- SNP priority lists (`-s`): Default is globally collated clinical TB SNPs
+- Reference genome files (`-ref`): Default is MTB-h37rv genome
+- Spoligotype sequencing range files (`-sp_f`)
+- Optional user-defined primers (`-ud`) and custom genomic features (`-gff`)
+
+**Configurable Settings:**
+- Amplicon size (`-a`)
+- Padding around target regions (`-p`): Default is amplicon size divided by 6
+- Number of specific amplicons (`-sn`) and targeted gene names (`-sg`)
+- Number of non-specific amplicons (`-nn`)
+- Graphical output option (`-g`) to visualize amplicon coverage
+
+**Outputs:**  
+- Amplicon sequences and primer details organized into a user-specified output directory (`-op`)
+- Optional graphical representations of designed amplicons
+
+**Example Usage:**
+```bash
+toast design -op ./output -a 400 -sn 2 -sg rpoB,katG -nn 20
+```
+This command designs amplicons of 400 base pairs, including two specifically targeting the `rpoB` and `katG` genes, and 20 additional amplicons for prioritized SNP coverage.
+
+---
+
+### 2. **Amplicon Number Estimation (`toast amplicon_no`)**
+
+**Purpose:**  
+Estimate the number of amplicons required to achieve desired SNP coverage in TB genomic studies.
+
+**Main Inputs:**
+- SNP priority files (`-s`)
+- Reference genome (`-ref`) and spoligotype sequencing files (`-sp_f`)
+
+**Settings:**
+- Desired amplicon size (`-a`)
+- Target coverage depth
+- Optional graphical output for coverage estimates (`-g`)
+
+**Outputs:**  
+Estimates and coverage graphics saved in the specified output directory (`-op`).
+
+---
+
+### 3. **Visualization and Plotting (`toast plotting`)**
+
+**Purpose:**  
+Visualize and analyze the coverage and distribution of designed amplicons.
+
+**Main Inputs:**
+- SNP priority files (`-s`)
+- Genomic feature files (GFF, `-gff`)
+- Primer sequences and reference designs
+
+**Settings:**
+- Read size specifications
+
+**Outputs:**  
+Visualization graphics, including coverage plots, available in the specified output directory (`-op`).
+
+---
+
+## Installation
+
+Install TOAST using pip:
+```bash
+pip install toast
+```
+
+Ensure all dependencies are properly installed as detailed in the provided documentation.
+
+## Quick Start
+
+To view available command-line options and their defaults, use:
+```bash
+toast design -h
+toast amplicon_no -h
+toast plotting -h
+```
+
+---
+
 
 ### Workflow
 #### Before running the tool
@@ -40,24 +136,41 @@ It can also be installed through pip at https://pypi.org/project/toast-amplicon/
 2. Run amplicon design (*design* function)
     - Example: 
     ```    
-    toast design -op ./cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 40 
-    
-    toast design -op ./cache/Amplicon_design_output -a 400 -sn 1 -sg rpoB,katG -nn 25
+    # Design amplicons of size 400 bp, including:
+    # - 1 specific amplicon targeting genes rpoB and katG
+    # - 40 non-specific amplicons covering SNPs prioritized by the built-in SNP priority list
+    toast design -op /example_output_directory -a 400 -sn 1 -sg rpoB,katG -nn 40
 
-    toast design -op ./cache/output -a 1000 -nn 4 -ud ./cache/test_df.csv
+    # Design amplicons of size 400 bp, including:
+    # - 1 specific amplicon targeting genes rpoB and katG
+    # - 25 non-specific amplicons covering prioritized SNPs (fewer than previous, reducing overall SNP coverage)
+    toast design -op /example_output_directory -a 400 -sn 1 -sg rpoB,katG -nn 25
 
-    toast design -op ./cache/output -a 1000 -nn 26
+    # Design amplicons of size 1000 bp, including:
+    # - 4 non-specific amplicons covering prioritized SNPs
+    # - Incorporate user-defined primer designs specified in './cache/test_df.csv'
+    toast design -op /example_output_directory -a 1000 -nn 4 -ud ./cache/test_df.csv
 
-    toast design -op ./cache/Amplicon_design_output -a 400 -sn 1 -sg rpsL -nn 0 -ud ./cache/test_df.csv
+    # Design amplicons of size 1000 bp, including:
+    # - 26 non-specific amplicons covering prioritized SNPs
+    # - No user-defined primers; only built-in SNP prioritization is used
+    toast design -op /example_output_directory -a 1000 -nn 26
+
+    # Design amplicons of size 400 bp, including:
+    # - 1 specific amplicon targeting gene rpsL
+    # - No additional non-specific amplicons
+    # - Include user-defined primer designs from './cache/test_df.csv'
+    toast design -op /example_output_directory -a 400 -sn 1 -sg rpsL -nn 0 -ud ./cache/test_df.csv
+
     ```
-3. Check amplicon design using coverage plot (*plotting* function)
+3. Check amplicon design using coverage plot (*plotting* function) (opional)
     - Example: 
     ```
     toast plotting -ap ./toast/Amplicon_design_output/Primer_design-accepted_primers-23-400.csv -rp ./toast/db/reference_design.csv -op ./cache/Amplicon_design_output -r 400
     ``` 
 
 
-## Primer3 Configuration Parameters (default file: db/default_primer_design_setting.txt)
+## Primer3 Configuration Parameters (default file: db/default_primer_design_setting.txt) (advanced setting)
 
 - **PRIMER_NUM_RETURN**: Number of primer pairs to return.
 - **PRIMER_PICK_INTERNAL_OLIGO**: Flag to pick internal oligos (0 for no, 1 for yes).
@@ -119,3 +232,8 @@ example usage:
 ```
 python mutation_priority_gen.py --positions "322168,553767,1077188" --output <output_path.csv>
 ```
+
+
+
+REFERENCE:
+Wang, L., Naphatcha Thawong, Thorpe, J., Higgins, M., Tan, M., Waritta Sawaengdee, Surakameth Mahasirimongkol, Perdigao, J., Campino, S., Clark, T.G. and Phelan, J.E. (2025). A novel tool for designing targeted gene amplicons and an optimised set of primers for high-throughput sequencing in tuberculosis genomic studies. bioRxiv (Cold Spring Harbor Laboratory). doi:https://doi.org/10.1101/2025.01.13.632698.
