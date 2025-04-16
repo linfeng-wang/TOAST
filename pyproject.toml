@@ -16,7 +16,8 @@ dependencies = ["pandas",
                 "plotly",
                 "rich_argparse",
                 "tabulate",
-                "primer3-py >= 2.0.1"
+                "primer3-py == 2.0.1",
+                "biopython"
 ]
 
 [project.urls]

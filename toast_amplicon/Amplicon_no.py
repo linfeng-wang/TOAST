@@ -15,8 +15,8 @@ from plotly import graph_objects as go
 from imp import reload
 # import argparse
 from functools import reduce
-from toast import working_algo_gene_2in1 as w
-from toast import primer_selection as p_s
+from toast_amplicon import working_algo_gene_2in1 as w
+from toast_amplicon import primer_selection as p_s
 import os
 
 #%%
