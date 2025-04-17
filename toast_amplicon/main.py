@@ -260,14 +260,14 @@ def main(args):
     print(f"- User defined primers: {args.user_defined_primers}")
 
     if args.padding_size == None:
-        if int(args.amplicon_size/6) < 100:
-            args.amplicon_size = 100
-            print('!! Padding size is less than 100, increased to 100bp to faciliate primer design')
+        if int(args.amplicon_size/6) < 50:
+            args.amplicon_size = 50
+            print('!! Padding size is less than 50, increased to 50bp to faciliate primer design')
         print(f"- Padding_size: {int(args.amplicon_size)}")
     else:
         print(f"- Padding_size: {int(args.padding_size)}")
-        if int(args.amplicon_size/6) < 100:
-            print('!! Padding size is less than 100, might introduce difficulties in primer design')
+        if int(args.amplicon_size/6) < 50:
+            print('!! Padding size is less than 50, might introduce difficulties in primer design')
         
     if args.segmented_amplicon_size != None:
         print(f"- Segmented Amplicon Size [min, max, step, count of each step]: [{args.segmented_amplicon_size}]")
@@ -325,7 +325,7 @@ def main(args):
 
     # paddding size
     if args.padding_size == None:    
-        padding = max(int(read_size/6), 100)
+        padding = max(int(read_size/6), 50)
         # padding = int(read_size/2)
         # padding = 50
     else:

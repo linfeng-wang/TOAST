@@ -18,6 +18,18 @@ Install Python package (be in the root directory of the repository)
 Install the required conda environment, yml file form linux and python 3.11.6
 ```conda env create -n TOAST -f toast_env.yml```
 
+```
+dependencies = ["pandas", 
+                "numpy",
+                "plotly",
+                "rich_argparse",
+                "tabulate",
+                "primer3-py == 2.0.1",
+                "biopython",
+                "matplotlib"
+]
+```
+
 It can also be installed through pip at https://pypi.org/project/toast-amplicon/
 
 ## Key Functionalities

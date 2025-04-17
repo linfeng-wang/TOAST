@@ -504,7 +504,7 @@ def result_extraction(primer_pool, accepted_primers, sequence, seq, padding, ref
     Product_size = []
     if len(results['PRIMER_PAIR']) == 0:
         print('!!!No primer designed')
-        print('!!!Try increasing the padding size')
+        print('!!!Try changing the padding size')
         return 0
     
     for i, primer_num in enumerate(results['PRIMER_PAIR']):
