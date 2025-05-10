@@ -2,10 +2,10 @@
 <!-- - TB and Other pathogen Amplicon Sequencing Tool
 - TB ONT Amplicon Sequencing Tool -->
 
-We present TOAST, a software tool designed to streamline and optimize amplicon primer design for Mycobacterium tuberculosis sequencing. TOAST integrates the robust primer design capabilities of Primer3—accounting for Tm, homopolymers, hairpins, and homodimers—with an in-house pipeline that rigorously filters for heterodimer formation and unintended alternative binding. What sets TOAST apart is its automation and intelligence: it leverages a curated database of over 50 M. tuberculosis genomes to inform amplicon placement, ensuring robust primer performance across strain diversity. Users can prioritize SNPs for coverage, focus on specific resistance genes, and tailor designs to spoligotype backgrounds. The tool outputs primer sequences along with detailed thermodynamic profiles and genomic coordinates, making it an end-to-end solution for targeted TB panel design.
+We present TOAST, a software tool designed to streamline and optimize amplicon primer design for Mycobacterium tuberculosis sequencing. TOAST integrates the robust primer design capabilities of Primer3—accounting for Tm, homopolymers, hairpins, and homodimers—with an in-house pipeline that rigorously filters for heterodimer formation and unintended alternative binding. What sets TOAST apart is its automation and intelligence: it leverages a curated drug resistance database of over 50 M. tuberculosis genomes to inform amplicon placement (**TOAST/toast_amplicon/db/variants.csv**), ensuring robust primer performance across strain diversity. Users can prioritize SNPs for coverage, focus on specific resistance genes, and tailor designs to spoligotype backgrounds. The tool outputs primer sequences along with detailed thermodynamic profiles and genomic coordinates, making it an end-to-end solution for targeted TB panel design.
 
-Currently this tool is available as a **pre-print on BioRxiv**: https://genomics.lshtm.ac.uk/webtoast/#/
-The designed 33 primers covering drug resistance mutations according to the 50k dataset mutation frequency can be found in the /dr_amplicon_design-33/ folder in github.
+Currently this tool is available as a **pre-print on BioRxiv**: https://doi.org/10.1101/2025.01.13.632698
+The designed 33 primers covering drug resistance mutations according to the 50k dataset mutation frequency can be found in the **TOAST/dr_amplicon_design-33/** folder in github.
 
 
 **A web version is also available at: https://genomics.lshtm.ac.uk/webtoast/#/**
