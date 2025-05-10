@@ -269,11 +269,18 @@ def place_amplicon(full_data, read_number, read_size, primer_pool, accepted_prim
             primer_pool, accepted_primers, no_primer = primer_selection.result_extraction(primer_pool, accepted_primers, seq_template, run+1, padding, ref_genome, high_b, low_b, read_size, full_data_cp, check_snp, global_args, freq_cutoff=50000)
         except TypeError as e:
             # print("!!! No primer designed")
-            # print("!!! Try changing the padding size")
             print(f"Error details: {e}")
+            print("!!! Try increasing the padding size")
             import sys
             sys.exit(1)
-        no_primer = [no_primer[-1]]
+        try:
+            no_primer = [no_primer[-1]]
+        except TypeError as e:
+            print(f"Error details: {e}")
+            print("!!! Try increasing the padding size")
+            import sys
+            sys.exit(1)
+            
         no_primer_.extend(no_primer)
         
         if accepted_primers.shape[0] != 0:

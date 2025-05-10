@@ -189,24 +189,54 @@ def quick_estimate_amplicons(df, amplicon_length, segmented=None):
                     
         return amplicon_count
 
+# def extract_gff3(gff3_file_path):
+#     # Read the GFF3 file
+#     gff3_columns = ['seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes']
+#     gff3_df = pd.read_csv(gff3_file_path, sep='\t', comment='#', names=gff3_columns)
+
+#     # Filter to keep only gene entries and explicitly create a copy
+#     genes_df = gff3_df[gff3_df['type'] == 'gene'].copy()
+
+#     # Extract gene names from the attributes column
+#     genes_df['gene_id'] = genes_df['attributes'].apply(lambda x: x.split(';')[0].split('=')[1].split(':')[1])
+#     genes_df['gene_name'] = genes_df['attributes'].apply(lambda x: x.split(';')[1].split('=')[1])
+
+#     # Create a new DataFrame with the required information
+#     genes_info_df = genes_df[['gene_id', 'gene_name', 'seqid', 'start', 'end']]
+
+#     # Rename columns for clarity
+#     genes_info_df.columns = ['gene_id', 'gene_name', 'chr', 'start', 'end']
+#     genes_info_df[genes_info_df['gene_name'] != 'protein_coding']
+#     return genes_info_df
+
+def parse_attributes(attr_str):
+    """Parses the GFF3 attributes column into a dictionary"""
+    attrs = {}
+    for entry in attr_str.split(';'):
+        if '=' in entry:
+            key, value = entry.strip().split('=', 1)
+            attrs[key] = value
+    return attrs
+
 def extract_gff3(gff3_file_path):
     # Read the GFF3 file
     gff3_columns = ['seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes']
     gff3_df = pd.read_csv(gff3_file_path, sep='\t', comment='#', names=gff3_columns)
 
-    # Filter to keep only gene entries and explicitly create a copy
-    genes_df = gff3_df[gff3_df['type'] == 'gene'].copy()
+    # Keep gene-related and rRNA entries
+    gene_like_df = gff3_df[gff3_df['type'].isin(['gene', 'rRNA_gene'])].copy()
 
-    # Extract gene names from the attributes column
-    genes_df['gene_id'] = genes_df['attributes'].apply(lambda x: x.split(';')[0].split('=')[1].split(':')[1])
-    genes_df['gene_name'] = genes_df['attributes'].apply(lambda x: x.split(';')[1].split('=')[1])
+    # Parse the attributes into dictionaries
+    parsed_attrs = gene_like_df['attributes'].apply(parse_attributes)
 
-    # Create a new DataFrame with the required information
-    genes_info_df = genes_df[['gene_id', 'gene_name', 'seqid', 'start', 'end']]
+    # Extract gene_id and gene_name or fallback to Name
+    gene_like_df['gene_id'] = parsed_attrs.apply(lambda d: d.get('gene_id') or d.get('ID', '').split(':')[-1])
+    gene_like_df['gene_name'] = parsed_attrs.apply(lambda d: d.get('gene') or d.get('Name'))
 
-    # Rename columns for clarity
+    # Create a clean output DataFrame
+    genes_info_df = gene_like_df[['gene_id', 'gene_name', 'seqid', 'start', 'end']].copy()
     genes_info_df.columns = ['gene_id', 'gene_name', 'chr', 'start', 'end']
-    genes_info_df[genes_info_df['gene_name'] != 'protein_coding']
+
     return genes_info_df
 
 def pop_first_item(d, a):
@@ -266,7 +296,7 @@ def main(args):
         print(f"- Padding_size: {int(args.amplicon_size)}")
     else:
         print(f"- Padding_size: {int(args.padding_size)}")
-        if int(args.amplicon_size/6) < 50:
+        if int(args.padding_size) < 50:
             print('!! Padding size is less than 50, might introduce difficulties in primer design')
         
     if args.segmented_amplicon_size != None:
@@ -392,6 +422,7 @@ def main(args):
         print('==Segmented amplicon size:', amplicon_sizes)
         
     gff_df = extract_gff3(args.gff3_file)
+    # print("GFF columns:", gff_df.columns)
     if len(specific_gene)>0:
         print('=====Specific amplicon=====')
         # gff_df_lower = gff_df.applymap(lambda x: x.lower() if isinstance(x, str) else x)
@@ -399,7 +430,6 @@ def main(args):
         for col in gff_df_lower.columns:
             if gff_df_lower[col].dtype == 'object':  # Check if the column is of type 'object' (string-like)
                 gff_df_lower[col] = gff_df_lower[col].str.lower()  # Convert the entire column to lowercase
-
         for x in specific_gene:
             # with np.printoptions(threshold=np.inf):
                 # print(gff_df['gene_id'].unique())
@@ -423,10 +453,16 @@ def main(args):
         drugs = []
         sublins = []
         dr_types = []
+        # for x in all_positions:
+        #     for i, row in df1.iterrows():
+        #         if x in range(row.start, row.end + 1):
+        #             gene_names.append(row['gene_id'])
         for x in all_positions:
-            for i, row in df1.iterrows():
-                if x in range(row.start, row.end + 1):
-                    gene_names.append(row['gene_id'])
+            matching_rows = df1[(df1['start'] <= x) & (df1['end'] >= x)]
+            if not matching_rows.empty:
+                gene_names.append(matching_rows.iloc[0]['gene_id'])  # Take the first matching gene
+            else:
+                gene_names.append('-')            
             if x in full_data['genome_pos'].tolist():
                 # gene_names.append(full_data[full_data['genome_pos'] == x]['gene'].values[0])
                 changes.append(full_data[full_data['genome_pos'] == x]['change'].values[0])
