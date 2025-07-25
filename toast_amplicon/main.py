@@ -624,7 +624,7 @@ def main(args):
 
     read_number = user_defined_no + specific_gene_data_count + non_specific_gene_data_count + len(covered_ranges_spol)
     # output
-    primer_label = [f'Gene_specific:{args.specific_amplicon_gene}']*specific_gene_data_count + ['Non_specific']*non_specific_gene_data_count + ['Spoligotype']*len(covered_ranges_spol)
+    primer_label = [f'gene-based:{args.specific_amplicon_gene}']*specific_gene_data_count + ['mutationFrequency-based']*non_specific_gene_data_count + ['Spoligotype']*len(covered_ranges_spol)
     # print(primer_label)
     # print(len(primer_label))
     # print(accepted_primers)
