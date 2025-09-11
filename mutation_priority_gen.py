@@ -1,3 +1,6 @@
+# Example usage:
+# python mutation_priority_gen.py -p '12204,12555,811492,811642,811753,1135798,1136017,1227217,1227518,4238120,4238963' -o /mnt/storage10/lwang/Projects/TOAST/cache/lin_snp01-29.csv
+
 import csv
 import argparse
 
@@ -61,5 +64,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-
+# Example usage:
 # python mutation_priority_gen.py -p '12204,12555,811492,811642,811753,1135798,1136017,1227217,1227518,4238120,4238963' -o /mnt/storage10/lwang/Projects/TOAST/cache/lin_snp01-29.csv

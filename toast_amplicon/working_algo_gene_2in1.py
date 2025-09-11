@@ -353,7 +353,7 @@ def modify_primer_name(primer, amplicon_type, L_R):
     if 'User' in primer:
         return primer
     else:
-        prefix = 'sp' if 'Gene_specific' in amplicon_type else 'ns' if 'Non_specific' in amplicon_type else 'spol' if 'Spoligotype' in amplicon_type else ''
+        prefix = 'gb' if 'gene-based' in amplicon_type else 'mb' if 'mutationFrequency-based' in amplicon_type else 'spol' if 'Spoligotype' in amplicon_type else ''
         parts = primer.split('-')
         if len(parts) > 1:
             parts[-1] = L_R + str(int(parts[-1][1:]) + 1)  # Increment the number

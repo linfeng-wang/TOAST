@@ -156,3 +156,10 @@ toast design -s /mnt/storage10/lwang/Projects/TOAST/cache/lineage_specific_snp_p
 
 
 toast design -sg KatG,inhA,FabG1,ahpC,rpoB,embA,embB,ubiA,gyrA,gyrB,pncA,rrl,rplc,thyA,folC,ribD,rpsl,rrs,gid,eis,ethA,Rv0678,pepQ,atpE,mmpl5,ddn,fbiA,fbiB,fbiC,fgd1,Rv2983,alr,Rv0440,Rv3874 -a 280 -p 200 -sn 30 -op /mnt/storage10/lwang/Projects/TOAST/cache/test1
+
+
+
+toast design -s /mnt/storage10/lwang/Projects/TOAST/cache/lineage_specific_snp_priority_01-29.csv -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_lineage01- -seg 200,450,50,2 -p 100
+
+
+toast design -op /mnt/storage10/lwang/Projects/TOAST/cache/Amplicon_design_output_test110925 -a 500 -sn 1 -sg Rv0678 -nn 1

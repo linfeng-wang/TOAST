@@ -1,0 +1,2 @@
+Amplicon_ID,pLeft_ID,pLeft_coord,pLeft_length,pLeft_Tm,pLeft_GC,pLeft_Sequences,pLeft_EndStability,pRight_ID,pRight_coord,pRight_length,pRight_Tm,pRight_GC,pRight_Sequences,pRight_EndStability,Penalty,Product_size,Amplicon_type,Redesign,Designed_ranges,Designed_size,Group
+rpoB-A1-,P1--L1,761130,20,59.9,65.0,GGTTGACCCACAAGCGCYGA,5.54,P1--R1,761294,20,59.23,65.0,CACCGACAGCGAGCCGATCA,2.92,0.87,164,mutationFrequency-based,-,"[761105, 761155]",50,1

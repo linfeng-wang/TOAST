@@ -1,0 +1,22 @@
+,value,count_x,count_y,% covered
+9,ethionamide,1069,1078,99.16512059369202
+18,pyrazinamide,987,1140,86.57894736842105
+11,isoniazid,851,865,98.38150289017341
+3,capreomycin,174,301,57.80730897009967
+20,streptomycin,166,167,99.40119760479041
+19,rifampicin,165,168,98.21428571428571
+8,ethambutol,99,139,71.22302158273382
+4,ciprofloxacin,41,41,100.0
+10,fluoroquinolones,41,41,100.0
+13,levofloxacin,41,41,100.0
+15,moxifloxacin,41,41,100.0
+16,ofloxacin,41,41,100.0
+17,para-aminosalicylic_acid,36,37,97.2972972972973
+12,kanamycin,16,16,100.0
+0,amikacin,7,7,100.0
+5,clofazimine,6,6,100.0
+2,bedaquiline,6,6,100.0
+1,aminoglycosides,6,6,100.0
+14,linezolid,3,3,100.0
+7,delamanid,3,8,37.5
+6,cycloserine,2,15,13.333333333333334
