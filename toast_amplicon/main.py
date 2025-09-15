@@ -316,6 +316,7 @@ def main(args):
         print(f"- Spoligo Sequencing File: {args.spoligo_sequencing_file}")
     print(f"- Output Folder Path: {args.output_folder_path}")
     print(f"- Mutiplex grouping: {args.multiplexing}")
+    print(f"- 5' barcoding: {args.barcoding}")
     print("=================================================")
 
     gene_names = [
@@ -578,7 +579,7 @@ def main(args):
 
                     # covered_positions_nosp = covered_positions_nosp + covered_positions_nosp_
                     covered_ranges_nosp = covered_ranges_nosp + covered_ranges_nosp_
-      
+    
             else:
                 covered_positions_nosp, covered_ranges_nosp, full_data_cp, primer_pool, accepted_primers, no_primer_ = wa.place_amplicon(non_specific_gene_data, non_specific_amplicon, read_size, primer_pool, accepted_primers, no_primer_,ref_genome, global_args, args.graphic_option, padding=padding, output_path =output_path)
                 covered_positions = covered_positions_nosp
@@ -1060,6 +1061,11 @@ def main(args):
             
     accepted_primers['Amplicon_ID'] = [str(g) + '-' + str(a) for g, a in zip(gene_, accepted_primers['Amplicon_ID'])]
 
+    if args.barcoding != None:
+        barcoding = args.barcoding.upper()
+        accepted_primers['pLeft_Sequences'] = [f'{barcoding}-{x}' for x in accepted_primers['pLeft_Sequences']]
+        accepted_primers['pRight_Sequences'] = [f'{barcoding}-{x}' for x in accepted_primers['pRight_ID']]
+        
     accepted_primers.to_csv(f'{op}/Primer_design-accepted_primers-{read_number}-{read_size}{sp}.csv',index=False, lineterminator=None)
 
     print('-'*37)
@@ -1310,6 +1316,8 @@ def cli():
     setting.add_argument('-sc','--spoligo_coverage', action='store_true', help = 'Whether to amplify Spoligotype', default = False)
     setting.add_argument('-set','--global_args', help = 'Amplicon search setting', default = f'{db}/default_primer_design_setting.json')
     setting.add_argument('-mg','--multiplexing', action='store_true', help = 'Whether include multiplex grouping', default = True)
+    setting.add_argument('-bc','--barcoding', type = str, help = 'barcode sequences to include at the 5 prime ends of the primers', default=None)
+
 
     # out
     output=parser_sub.add_argument_group("Output options")
