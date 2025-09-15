@@ -9,6 +9,7 @@ The designed 33 primers covering drug resistance mutations according to the 50k 
 
 
 **A web version is also available at: https://genomics.lshtm.ac.uk/webtoast/#/**
+a tutorial video on how to run toast from the website can be found in **webtoast_tutorial.mp4**
 
 ### How to install
 Clone repository
@@ -32,7 +33,7 @@ dependencies = ["pandas",
 
 It can also be installed through pip at https://pypi.org/project/toast-amplicon/
 
-## Key Functionalities
+## Key Functionalities 
 ### 1. **Amplicon Design (`toast design`)**
 **Main Inputs:**
 - SNP priority lists (`-s`): Default is globally collated clinical TB SNPs
