@@ -12,5 +12,6 @@ variants_full.csv
 *.txt
 *.csi
 *.trees
+toast_amplicon/__pycache__/
 # *.csv
 # find . -type f -size +99M
