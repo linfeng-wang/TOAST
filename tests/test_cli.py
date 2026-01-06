@@ -1,9 +1,9 @@
-import pytest
+import Projects.TOAST.tests.test_cli as test_cli
 import subprocess
 import os
 import filecmp
 
-@pytest.fixture(scope='module')
+@test_cli.fixture(scope='module')
 def setup_environment(tmp_path_factory):
     # Setup for test environment
     tmp_dir = tmp_path_factory.mktemp('data')
@@ -24,10 +24,23 @@ def test_amplicon_no(setup_environment):
     # Add more assertions to check the expected output
     
 def test_design_400_25nn_userinput(setup_environment):
-    # Example for one variant of the design function
-    command = f"toast design -op {setup_environment} -a 400 -sn 1 -sg rpoB,katG -nn 2 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv"
+    # Resolve path to test_df.csv relative to this test file
+    test_dir = os.path.dirname(__file__)
+    user_data = os.path.join(test_dir, "test_df.csv")
+
+    command = (
+        f"toast design "
+        f"-op {setup_environment} "
+        f"-a 400 "
+        f"-sn 1 "
+        f"-sg rpoB,katG "
+        f"-nn 2 "
+        f"-ud {user_data}"
+    )
+
     returncode, stdout, stderr = run_command(command)
-    assert returncode == 0
+
+    assert returncode == 0, stderr.decode()
     # Add more assertions to check the expected output
 def test_design_400_25nn(setup_environment):
     # Example for one variant of the design function
@@ -73,5 +86,6 @@ def test_plotting_function(setup_environment):
     returncode, stdout, stderr = run_command(command)
     assert returncode == 0
     # Add more assertions to check the expected output
-
-# Additional test functions for other variants of the commands...
+    
+def test_dummy():
+    assert True
