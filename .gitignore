@@ -9,7 +9,6 @@ strain_analysis/Strain_calling_models/read_pos.csv
 *.png
 *.fastq
 variants_full.csv
-*.txt
 *.csi
 *.trees
 toast_amplicon/__pycache__/
