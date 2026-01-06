@@ -1,4 +1,0 @@
-Amplicon_ID,pLeft_ID,pLeft_coord,pLeft_length,pLeft_Tm,pLeft_GC,pLeft_Sequences,pLeft_EndStability,pRight_ID,pRight_coord,pRight_length,pRight_Tm,pRight_GC,pRight_Sequences,pRight_EndStability,Penalty,Product_size,Amplicon_type,Redesign,Designed_ranges,Designed_size,Group
-mmpS5-A1-sp,P1-sp-L1,778842,20,59.97,65.0,GGCGATGGCGACCACAACCA,3.67,P1-sp-R1,779642,20,59.71,65.0,GCGCCTCGTTGTTGTTGGGC,5.36,0.32,800,Gene_specific:Rv0678,-,"[778888, 779588]",700,1
-rpoB-A1-ns,P1-ns-L1,760597,20,59.71,65.0,CGACGAGGCGCTGTTGGACA,4.02,P1-ns-R1,761497,20,59.61,65.0,TACTCCACCTCGCCCGCCTT,4.35,0.68,900,Non_specific,-,"[760663, 761463]",800,1
-katG-A2-ns,P2-ns-L1,2155047,20,59.57,65.0,GCGGTGTATTGCCAAGCGCC,6.53,P2-ns-R1,2155900,20,59.44,65.0,TCGACGTTGACGCCCTGACG,4.35,0.99,853,Non_specific,-,"[2155102, 2155852]",750,2

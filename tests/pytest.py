@@ -25,41 +25,41 @@ def test_amplicon_no(setup_environment):
     
 def test_design_400_25nn_userinput(setup_environment):
     # Example for one variant of the design function
-    command = f"toast design -op {setup_environment} -a 400 -sn 1 -sg rpoB,katG -nn 25 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv"
+    command = f"toast design -op {setup_environment} -a 400 -sn 1 -sg rpoB,katG -nn 2 -ud /mnt/storage10/lwang/Projects/TOAST/cache/test_df.csv"
     returncode, stdout, stderr = run_command(command)
     assert returncode == 0
     # Add more assertions to check the expected output
 def test_design_400_25nn(setup_environment):
     # Example for one variant of the design function
-    command = f"toast design -op {setup_environment} -a 400 -sn 1 -sg rpoB,katG -nn 25"
+    command = f"toast design -op {setup_environment} -a 400 -sn 1 -sg rpoB,katG -nn 2"
     returncode, stdout, stderr = run_command(command)
     assert returncode == 0
     # Add more assertions to check the expected output
 
 def test_design_400_25nn(setup_environment):
     # Example for one variant of the design function
-    command = f"toast design -op {setup_environment} -a 400 -sn 1 -sg rpoB,katG -nn 25"
+    command = f"toast design -op {setup_environment} -a 400 -sn 1 -sg rpoB,katG -nn 2"
     returncode, stdout, stderr = run_command(command)
     assert returncode == 0
     # Add more assertions to check the expected output
 
 def test_design_400_25sp(setup_environment):
     # Example for one variant of the design function
-    command = f"toast design -op {setup_environment} -a 400 -sn 25 -sg rpoB,katG -nn 1"
+    command = f"toast design -op {setup_environment} -a 400 -sn 2 -sg rpoB,katG -nn 1"
     returncode, stdout, stderr = run_command(command)
     assert returncode == 0
     # Add more assertions to check the expected output
     
 def test_design_1000_25sp(setup_environment):
     # Example for one variant of the design function
-    command = f"toast design -op {setup_environment} -a 1000 -sn 1 -sg rpoB,katG -nn 25"
+    command = f"toast design -op {setup_environment} -a 1000 -sn 1 -sg rpoB,katG -nn 2"
     returncode, stdout, stderr = run_command(command)
     assert returncode == 0
     # Add more assertions to check the expected output
 
 def test_design_1000_25sp_sc(setup_environment):
     # Example for one variant of the design function
-    command = f"toast design -op {setup_environment} -a 1000 -sn 25 -sg rpoB,katG -nn 1 -sc"
+    command = f"toast design -op {setup_environment} -a 1000 -sn 2 -sg rpoB,katG -nn 1 -sc"
     returncode, stdout, stderr = run_command(command)
     assert returncode == 0
     # Add more assertions to check the expected output

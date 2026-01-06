@@ -1,3 +1,0 @@
-index,pLeft_ID,pLeft_coord,pLeft_length,pLeft_Tm,pLeft_GC,pLeft_Sequences,pLeft_EndStability,pRight_ID,pRight_coord,pRight_length,pRight_Tm,pRight_GC,pRight_Sequences,pRight_EndStability,Penalty,Product_size,Amplicon_type,Designed_ranges
-0,Primer1-UserLeft,781678,20,-,-,CACTCCGAAGAAGCCGAACT,-,Primer1-UserRight,782004,20,-,-,TACGGATCGCAGTTGGTCAC,-,-,326,User-defined,"[781678, 782004]"
-0,P1-sp-L1,761067,20,59.96510416451275,55.0,TCAAGGAGTTCTTCGGCACC,5.01,P1-sp-R1,761385,20,59.972283557587275,60.0,CGAGATCGTGTACCTGACCG,4.04,0.06261227789997292,318,Gene_specific:rpoB,"[761004, 761404]"
