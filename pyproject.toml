@@ -4,11 +4,13 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "toast-amplicon"
+version = "1.5.4"
+description = "Amplicon design tool for TB drug resistance"
 authors = [{name = "Linfeng Wang", email = "linfeng.wang@lshtm.ac.uk"}]
 readme = "PYPI.md"
 license = {file = "LICENSE"}
+requires-python = "<3.12"
 classifiers = ["License :: OSI Approved :: MIT License"]
-dynamic = ["version", "description"]
 
 
 dependencies = ["pandas", 

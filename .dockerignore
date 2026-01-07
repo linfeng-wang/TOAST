@@ -1,3 +1,12 @@
+cache/
+dist/
+output/
+*.ipynb
+*.mp4
+*.xlsx
+__pycache__/
+.git/
+.env
 *.bam
 *.bai
 strain_analysis/Strain_calling_models/read_pos.csv
@@ -14,7 +23,3 @@ variants_full.csv
 toast_amplicon/__pycache__/
 tests/__pycache__/
 cache/
-pytest_cache/
-pytest-of-lwang/
-# *.csv
-# find . -type f -size +99M

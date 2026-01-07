@@ -4,6 +4,7 @@
 # from typing import List, Optional, Callable, Tuple
 import numpy as np
 import time
+from toast_amplicon import __version__
 
 # from geneticalgorithm import geneticalgorithm as ga
 from rich_argparse import RawDescriptionRichHelpFormatter
@@ -290,14 +291,14 @@ def main(args):
     print(f"- User defined primers: {args.user_defined_primers}")
 
     if args.padding_size == None:
-        if int(args.amplicon_size/6) < 50:
-            args.amplicon_size = 50
-            print('!! Padding size is less than 50, increased to 50bp to faciliate primer design')
+        if int(args.amplicon_size/5) < 80:
+            args.amplicon_size = 80
+            print('!! Padding size is less than 80, increased to 80bp to faciliate primer design')
         print(f"- Padding_size: {int(args.amplicon_size)}")
     else:
         print(f"- Padding_size: {int(args.padding_size)}")
-        if int(args.padding_size) < 50:
-            print('!! Padding size is less than 50, might introduce difficulties in primer design')
+        if int(args.padding_size) < 80:
+            print('!! Padding size is less than 80, might introduce difficulties in primer design')
         
     if args.segmented_amplicon_size != None:
         print(f"- Segmented Amplicon Size [min, max, step, count of each step]: [{args.segmented_amplicon_size}]")
@@ -356,9 +357,9 @@ def main(args):
 
     # paddding size
     if args.padding_size == None:    
-        padding = max(int(read_size/6), 50)
+        padding = max(int(read_size/5), 80)
         # padding = int(read_size/2)
-        # padding = 50
+        # padding = 80
     else:
         padding = args.padding_size
 
@@ -760,42 +761,89 @@ def main(args):
 
         #     df[col_name] = new_ids  # Update the column with new IDs
 
+    # def increment_id_with_regex(df, col_name):
+    #     counter = {}  # Track counts of each ID
+    #     new_ids = []  # Store updated IDs
+
+    #     for id in df[col_name]:
+    #         # original_id = id
+    #         # Use regex to find all numbers in the ID
+    #         if 'User' in id:
+    #             continue
+    #         numbers = re.findall(r'\d+', id)
+
+    #         if numbers:
+    #             first_number = numbers[0]  # Focus on the first number found
+    #             if len(id.split('-')) > 2:
+    #                 check_id = '-'.join(id.split('-')[:-1])
+    #             else:
+    #                 check_id = id
+    #             new_id = id
+    #             while check_id in counter:                
+    #                 # Increment the first number found
+    #                 new_number = str(int(first_number) + 1)
+    #                 # Replace the first occurrence of the number with its incremented value
+    #                 new_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, new_id, count=1)
+    #                 check_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, check_id, count=1)
+    #                 first_number = new_number  # Update first_number for potential next iteration
+    #             counter[check_id] = True  # Mark this new ID as seen
+    #             new_ids.append(new_id)  # Add to the list of new IDs
+    #         # else:
+    #         #     # If no number is found, just append the ID as is
+    #         #     new_ids.append(id)
+
+    #         # Update counter for the original ID if it's not already there to handle non-duplicates correctly
+    #         # if original_id not in counter:
+    #         #     counter[original_id] = True
+
+    #     df[col_name] = new_ids  # Update the column with new IDs
     def increment_id_with_regex(df, col_name):
-        counter = {}  # Track counts of each ID
-        new_ids = []  # Store updated IDs
+        counter = {}
+        new_ids = []
 
         for id in df[col_name]:
-            # original_id = id
-            # Use regex to find all numbers in the ID
+            # Keep user-defined IDs unchanged
             if 'User' in id:
+                new_ids.append(id)
                 continue
+
             numbers = re.findall(r'\d+', id)
 
             if numbers:
-                first_number = numbers[0]  # Focus on the first number found
+                first_number = numbers[0]
+
                 if len(id.split('-')) > 2:
                     check_id = '-'.join(id.split('-')[:-1])
                 else:
                     check_id = id
+
                 new_id = id
-                while check_id in counter:                
-                    # Increment the first number found
+
+                while check_id in counter:
                     new_number = str(int(first_number) + 1)
-                    # Replace the first occurrence of the number with its incremented value
-                    new_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, new_id, count=1)
-                    check_id = re.sub(r'(?<!\d)'+first_number+r'(?!\d)', new_number, check_id, count=1)
-                    first_number = new_number  # Update first_number for potential next iteration
-                counter[check_id] = True  # Mark this new ID as seen
-                new_ids.append(new_id)  # Add to the list of new IDs
-            # else:
-            #     # If no number is found, just append the ID as is
-            #     new_ids.append(id)
+                    new_id = re.sub(
+                        r'(?<!\d)' + first_number + r'(?!\d)',
+                        new_number,
+                        new_id,
+                        count=1
+                    )
+                    check_id = re.sub(
+                        r'(?<!\d)' + first_number + r'(?!\d)',
+                        new_number,
+                        check_id,
+                        count=1
+                    )
+                    first_number = new_number
 
-            # Update counter for the original ID if it's not already there to handle non-duplicates correctly
-            # if original_id not in counter:
-            #     counter[original_id] = True
+                counter[check_id] = True
+                new_ids.append(new_id)
 
-        df[col_name] = new_ids  # Update the column with new IDs
+            else:
+                # No number found, keep ID unchanged
+                new_ids.append(id)
+
+        df[col_name] = new_ids
+
 
     increment_id_with_regex(accepted_primers,'Amplicon_ID')
     increment_id_with_regex(accepted_primers, 'pLeft_ID')
@@ -808,12 +856,33 @@ def main(args):
         
         read_size = '_'.join(str(x) for x in segmented)
     
+    # def len_calc(l):
+    #     # coords = [int(x.replace('[', '').replace(']', '')) for x in l.split(',')]
+    #     coords = l
+    #     return coords[1] - coords[0]
     def len_calc(l):
-        # coords = [int(x.replace('[', '').replace(']', '')) for x in l.split(',')]
-        coords = l
-        return coords[1] - coords[0]
+            # Case 1: already a list or tuple
+        if isinstance(l, (list, tuple)):
+            if len(l) >= 2:
+                return l[1] - l[0]
+            return None
 
-    accepted_primers['Designed_size'] =  list(map(len_calc, accepted_primers['Designed_ranges']))
+        # Case 2: string representation like "[123,456]" or "123,456"
+        if isinstance(l, str):
+            try:
+                coords = [int(x.strip().replace('[', '').replace(']', '')) for x in l.split(',')]
+                if len(coords) >= 2:
+                    return coords[1] - coords[0]
+            except ValueError:
+                return None
+
+        # Anything else
+        return None
+
+
+    # accepted_primers['Designed_size'] =  list(map(len_calc, accepted_primers['Designed_ranges']))
+    accepted_primers['Designed_size'] = accepted_primers['Designed_ranges'].map(len_calc)
+
     
     # GETTING MULTIPLEX GROUPING
     if args.multiplexing:
@@ -1290,6 +1359,8 @@ def cli():
                                     description='Amplicon design, list of specific genes that can be priotised: rpoB,katG,embB,pncA,rpsL,rrs,ethA,fabG1,gyrA,gid,inhA,ethR,rpoC,ahpC,gyrB,folC,tlyA,alr,embA,thyA,eis (given the default SNP database)',
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
+    parser.add_argument('--version', action='version', version=f"%(prog)s {__version__}")
+
     subparsers = parser.add_subparsers(dest="command", help="Task to perform")
 
     ###### Design pipeline

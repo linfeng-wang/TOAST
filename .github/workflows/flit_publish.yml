@@ -2,8 +2,8 @@ name: Publish to PyPI
 
 on:
   push:
-    branches:
-      - main  # change this if your default branch is different
+    tags:
+      - "v*"   # triggers on v1.0.0, v1.5.2, etc.
 
 jobs:
   publish:
@@ -12,12 +12,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'  # or your required version
+          python-version: "3.11"
 
       - name: Install flit
         run: pip install flit
@@ -26,5 +26,4 @@ jobs:
         env:
           FLIT_USERNAME: __token__
           FLIT_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: 
-          flit publish
+        run: flit publish
