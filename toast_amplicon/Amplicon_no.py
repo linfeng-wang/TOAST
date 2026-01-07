@@ -78,7 +78,7 @@ def place_amplicon_search(full_data, target_coverage, read_size, ref_size, outpu
     coverage_list = []
     coverage_range = []
     print('Placing Amplicons...')
-    while coverage < target_coverage*1:
+    while coverage < target_coverage*0.99:
     # while coverage < target_coverage*0.995:
         amplicon_number += 1
         amplicon_number_list.append(amplicon_number)

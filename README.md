@@ -16,7 +16,7 @@ Clone repository
 ```git clone <repo html link>```
 Install Python package (be in the root directory of the repository)
 ```pip install .```
-Install the required conda environment, yml file form linux and python 3.11.6
+Install the required conda environment, yml file form linux and python 3.11.6 **(make sure the python version is <3.12)**
 ```conda env create -n TOAST -f toast_env.yml```
 
 ```
@@ -30,8 +30,12 @@ dependencies = ["pandas",
                 "matplotlib"
 ]
 ```
+can also be found in *requirements.txt*
 
-It can also be installed through pip at https://pypi.org/project/toast-amplicon/
+### PyPI
+It can also be installed through **pip** at https://pypi.org/project/toast-amplicon/
+### Docker
+It is also available as a **docker image** at https://hub.docker.com/repository/docker/linfengwang/toast-amplicon/general
 
 ## Key Functionalities 
 ### 1. **Amplicon Design (`toast design`)**
@@ -232,4 +236,4 @@ python mutation_priority_gen.py --positions "322168,553767,1077188,1119158,11193
 
 
 REFERENCE:
-Wang, L., Naphatcha Thawong, Thorpe, J., Higgins, M., Tan, M., Waritta Sawaengdee, Surakameth Mahasirimongkol, Perdigao, J., Campino, S., Clark, T.G. and Phelan, J.E. (2025). A novel tool for designing targeted gene amplicons and an optimised set of primers for high-throughput sequencing in tuberculosis genomic studies. bioRxiv (Cold Spring Harbor Laboratory). doi:https://doi.org/10.1101/2025.01.13.632698.
+Wang, L., Thawong, N., Thorpe, J., Higgins, M., Ik, M.T.K., Sawaengdee, W., Mahasirimongkol, S., Perdigão, J., Campino, S., Clark, T.G. and Phelan, J.E. (2025e). TOAST: a novel tool for designing targeted gene amplicons and an optimised set of primers for high-throughput sequencing in tuberculosis genomic studies. BMC Genomics, 26(1). doi:https://doi.org/10.1186/s12864-025-12247-9.

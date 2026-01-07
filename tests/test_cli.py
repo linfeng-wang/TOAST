@@ -1,3 +1,5 @@
+# system tests for toast CLI functions
+
 import subprocess
 import os
 import filecmp
@@ -16,12 +18,6 @@ def run_command(command):
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     return process.returncode, stdout, stderr
-
-def test_amplicon_no(setup_environment):
-    command = f"toast amplicon_no -a 400 -op {setup_environment} -g"
-    returncode, stdout, stderr = run_command(command)
-    assert returncode == 0
-    # Add more assertions to check the expected output
     
 def test_design_400_25nn_userinput(setup_environment):
     # Resolve path to test_df.csv relative to this test file
@@ -83,6 +79,12 @@ def test_design_1000_25sp_sc(setup_environment):
     # Add more assertions to check the expected output
     
 
+def test_dummy():
+    assert True
+
+
+#non design function tests
+
 # def test_plotting_function(setup_environment):
 #     # Prepare input files as required for the plotting function
 #     amplicon_file = setup_environment / "Primer_design-accepted_primers-26-400.csv"
@@ -90,7 +92,7 @@ def test_design_1000_25sp_sc(setup_environment):
 #     command = f"toast plotting -ap {amplicon_file} -rp {reference_file} -op {setup_environment} -r 400"
 #     returncode, stdout, stderr = run_command(command)
 #     assert returncode == 0
-from pathlib import Path
+# from pathlib import Path
 
 # def test_plotting_function(setup_environment):
 #     # Step 1: generate required design output
@@ -130,5 +132,8 @@ from pathlib import Path
 
     # Add more assertions to check the expected output
     
-def test_dummy():
-    assert True
+# def test_amplicon_no(setup_environment):
+#     command = f"toast amplicon_no -a 400 -op {setup_environment} -g"
+#     returncode, stdout, stderr = run_command(command)
+#     assert returncode == 0
+#     # Add more assertions to check the expected output

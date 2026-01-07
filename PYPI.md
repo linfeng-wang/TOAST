@@ -188,9 +188,11 @@ python mutation_priority_gen.py --positions "322168,553767,1077188" --output <ou
 ```
 
 ---
-**More complete information with example files can be found in the Github repo**
+*More complete information with example files can be found in the Github repo*: https://github.com/linfeng-wang/TOAST
+*Docker image also available on DockerHub*: https://hub.docker.com/repository/docker/linfengwang/toast-amplicon/general
+
 ---
 
 
-REFERENCE:
-Wang, L., Naphatcha Thawong, Thorpe, J., Higgins, M., Tan, M., Waritta Sawaengdee, Surakameth Mahasirimongkol, Perdigao, J., Campino, S., Clark, T.G. and Phelan, J.E. (2025). A novel tool for designing targeted gene amplicons and an optimised set of primers for high-throughput sequencing in tuberculosis genomic studies. bioRxiv (Cold Spring Harbor Laboratory). doi:https://doi.org/10.1101/2025.01.13.632698.
+**REFERENCE:**
+Wang, L., Thawong, N., Thorpe, J., Higgins, M., Ik, M.T.K., Sawaengdee, W., Mahasirimongkol, S., Perdigão, J., Campino, S., Clark, T.G. and Phelan, J.E. (2025e). TOAST: a novel tool for designing targeted gene amplicons and an optimised set of primers for high-throughput sequencing in tuberculosis genomic studies. BMC Genomics, 26(1). doi:https://doi.org/10.1186/s12864-025-12247-9.
